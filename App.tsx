@@ -260,6 +260,18 @@ export default function App() {
         alert('新增活動失敗');
       }
     },
+    updateEvent: async (evt: MinistryEvent) => {
+      // Optimistic Update
+      const oldEvents = [...events];
+      setEvents(prev => prev.map(e => e.id === evt.id ? evt : e));
+      try {
+        await api.updateEvent(evt.id, evt);
+        loadData();
+      } catch (err) {
+        setEvents(oldEvents);
+        alert('更新活動失敗');
+      }
+    },
     markReportDownloaded: async (eventId: string) => {
       // Optimistic Update
       setEvents(prev => prev.map(e => e.id === eventId ? { ...e, isReportDownloaded: true } : e));
@@ -514,6 +526,7 @@ export default function App() {
           tasks={tasks}
           emailLogs={emailLogs}
           onAddEvent={handleAdminActions.addEvent}
+          onUpdateEvent={handleAdminActions.updateEvent}
           onMarkReportDownloaded={handleAdminActions.markReportDownloaded}
           onDeleteEvent={handleAdminActions.deleteEvent}
           onAddTask={handleAdminActions.addTask}

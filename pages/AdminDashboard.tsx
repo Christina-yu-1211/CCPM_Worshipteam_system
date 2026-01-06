@@ -13,9 +13,10 @@ interface AdminDashboardProps {
   users: User[];
   tasks: AdminTask[];
   emailLogs?: EmailLog[];
-  onAddEvent: (evt: Partial<MinistryEvent>) => void;
+  onAddEvent: (evt: any) => Promise<void>;
   onMarkReportDownloaded?: (eventId: string) => void;
-  onDeleteEvent: (id: string) => void;
+  onUpdateEvent: (evt: any) => Promise<void>;
+  onDeleteEvent: (id: string) => Promise<void>;
   onUpdateTask: (task: AdminTask) => void;
   onAddTask: (task: AdminTask) => void;
   onDeleteTask?: (id: string) => void;
@@ -26,7 +27,7 @@ interface AdminDashboardProps {
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   currentUser, events, signups, series, users, tasks,
-  onAddEvent, onDeleteEvent, onUpdateTask, onAddTask, onDeleteTask, onManageUser, onSeriesAction
+  onAddEvent, onUpdateEvent, onDeleteEvent, onUpdateTask, onAddTask, onDeleteTask, onManageUser, onSeriesAction, onTriggerEmailCheck
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'users' | 'tasks' | 'reports'>('overview');
 
@@ -142,12 +143,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (!eventForm.title || !eventForm.startDate || !eventForm.endDate) return alert('請填寫完整資訊');
 
     const payload: any = { ...eventForm };
-    if (!isEditingEvent) {
-      delete payload.id; // Let App generate ID
-    }
-    onAddEvent(payload);
-    if (isEditingEvent && eventForm.id) {
-      onDeleteEvent(eventForm.id);
+    if (isEditingEvent) {
+      onUpdateEvent(payload);
+    } else {
+      delete payload.id;
+      onAddEvent(payload);
     }
 
     setShowEventModal(false);

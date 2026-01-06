@@ -308,7 +308,7 @@ app.put('/api/signups/:id', async (req, res) => {
             `;
 
             for (const admin of admins) {
-                if (admin.email && admin.email !== 'admin') {
+                if (admin.email) {
                     await sendEmail(admin.email, subject, html);
                 }
             }

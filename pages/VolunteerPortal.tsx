@@ -313,16 +313,24 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                   {activeEvents.map(evt => {
                      const s = series.find(se => se.id === evt.seriesId);
                      const isSigned = signups.some(si => si.eventId === evt.id && si.volunteerId === user.id);
+                     const isDisabledForClick = !evt.isRegistrationOpen && !isSigned;
 
                      return (
                         <div
                            key={evt.id}
-                           onClick={() => setSelectedEventId(evt.id)}
-                           className={`relative p-6 rounded-3xl border-2 cursor-pointer transition-all duration-300 bg-white shadow-sm hover:border-mint-300 hover:shadow-md hover:-translate-y-1`}
+                           onClick={isDisabledForClick ? undefined : () => setSelectedEventId(evt.id)}
+                           className={`relative p-6 rounded-3xl border-2 transition-all duration-300 bg-white shadow-sm ${isDisabledForClick ? 'cursor-not-allowed opacity-70 border-gray-200' : 'cursor-pointer hover:border-mint-300 hover:shadow-md hover:-translate-y-1'}`}
                         >
                            <div className="flex justify-between items-start mb-2">
-                              <div className="text-sm font-extrabold uppercase tracking-widest px-2 py-0.5 rounded inline-block text-white" style={{ backgroundColor: s?.color || '#999' }}>
-                                 {s?.name}
+                              <div className="flex gap-2">
+                                 <div className="text-sm font-extrabold uppercase tracking-widest px-2 py-0.5 rounded inline-block text-white" style={{ backgroundColor: s?.color || '#999' }}>
+                                    {s?.name}
+                                 </div>
+                                 {!evt.isRegistrationOpen && (
+                                    <div className="text-sm font-extrabold uppercase tracking-widest px-2 py-0.5 rounded inline-block bg-red-100 text-red-600 border border-red-200">
+                                       報名已截止
+                                    </div>
+                                 )}
                               </div>
                               {isSigned && <CheckCircle className="text-mint-500 drop-shadow-sm" size={28} />}
                            </div>
