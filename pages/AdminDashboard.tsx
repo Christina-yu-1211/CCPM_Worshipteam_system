@@ -660,9 +660,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <BarChart2 className="text-blue-500" /> 各系列活動熱度
                 </h3>
                 <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
-                  <input type="date" value={statsStart} onChange={e => setStatsStart(e.target.value)} className="bg-white border border-gray-300 rounded px-2 py-1 text-sm font-bold text-gray-600" />
+                  <div className="relative flex items-center bg-white border border-gray-300 rounded focus-within:ring-2 focus-within:ring-mint-300 transition-all">
+                    <Calendar size={12} className="ml-2 text-gray-400" />
+                    <input type="date" value={statsStart} onChange={e => setStatsStart(e.target.value)} className="bg-transparent border-none outline-none px-2 py-1 text-sm font-bold text-gray-600" />
+                  </div>
                   <span className="text-gray-400">~</span>
-                  <input type="date" value={statsEnd} onChange={e => setStatsEnd(e.target.value)} className="bg-white border border-gray-300 rounded px-2 py-1 text-sm font-bold text-gray-600" />
+                  <div className="relative flex items-center bg-white border border-gray-300 rounded focus-within:ring-2 focus-within:ring-mint-300 transition-all">
+                    <Calendar size={12} className="ml-2 text-gray-400" />
+                    <input type="date" value={statsEnd} onChange={e => setStatsEnd(e.target.value)} className="bg-transparent border-none outline-none px-2 py-1 text-sm font-bold text-gray-600" />
+                  </div>
                 </div>
               </div>
 
@@ -987,7 +993,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {showEventModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
           {/* ... Event Form Content (Kept same) ... */}
-          <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl animate-pop my-10">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-[92vw] sm:w-full shadow-2xl animate-pop my-10 border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-extrabold text-gray-800">{isEditingEvent ? '編輯活動' : '新增活動'}</h2>
               <button onClick={() => setShowEventModal(false)}><X className="text-gray-400 hover:text-gray-600" /></button>
@@ -996,11 +1002,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {/* Basic Info */}
               <div>
                 <label className="block text-gray-500 text-sm font-bold mb-1">系列與標題</label>
-                <div className="flex gap-2">
-                  <select className="w-1/3 p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold" value={eventForm.seriesId} onChange={e => setEventForm({ ...eventForm, seriesId: e.target.value })}>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <select className="w-full sm:w-1/3 p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold outline-none focus:ring-2 focus:ring-mint-300" value={eventForm.seriesId} onChange={e => setEventForm({ ...eventForm, seriesId: e.target.value })}>
                     {series.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
-                  <input className="w-2/3 p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold" placeholder="活動標題" value={eventForm.title} onChange={e => setEventForm({ ...eventForm, title: e.target.value })} />
+                  <input className="w-full sm:w-2/3 p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold outline-none focus:ring-2 focus:ring-mint-300" placeholder="活動標題" value={eventForm.title} onChange={e => setEventForm({ ...eventForm, title: e.target.value })} />
                 </div>
               </div>
 
@@ -1010,11 +1016,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1">
                     <div className="text-[10px] uppercase font-black text-gray-400 ml-1 mb-0.5">開始</div>
-                    <input type="date" className="w-full p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold" value={eventForm.startDate} onChange={e => setEventForm({ ...eventForm, startDate: e.target.value })} />
+                    <div className="relative flex items-center bg-gray-50 rounded-xl border-2 border-gray-200 focus-within:ring-2 focus-within:ring-mint-300 transition-all">
+                      <Calendar size={16} className="ml-3 text-gray-400 pointer-events-none" />
+                      <input type="date" className="w-full p-3 bg-transparent border-none outline-none font-bold text-gray-700" value={eventForm.startDate} onChange={e => setEventForm({ ...eventForm, startDate: e.target.value })} />
+                    </div>
                   </div>
                   <div className="flex-1">
                     <div className="text-[10px] uppercase font-black text-gray-400 ml-1 mb-0.5">結束</div>
-                    <input type="date" className="w-full p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold" value={eventForm.endDate} onChange={e => setEventForm({ ...eventForm, endDate: e.target.value })} />
+                    <div className="relative flex items-center bg-gray-50 rounded-xl border-2 border-gray-200 focus-within:ring-2 focus-within:ring-mint-300 transition-all">
+                      <Calendar size={16} className="ml-3 text-gray-400 pointer-events-none" />
+                      <input type="date" className="w-full p-3 bg-transparent border-none outline-none font-bold text-gray-700" value={eventForm.endDate} onChange={e => setEventForm({ ...eventForm, endDate: e.target.value })} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1070,7 +1082,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
                 <div>
                   <label className="block text-gray-500 text-xs font-bold mb-1">截止日期</label>
-                  <input type="date" className="w-full p-2 bg-white rounded-lg border border-orange-200 text-sm" value={eventForm.registrationDeadline} onChange={e => setEventForm({ ...eventForm, registrationDeadline: e.target.value })} />
+                  <div className="relative flex items-center bg-white rounded-lg border border-orange-200 focus-within:ring-2 focus-within:ring-orange-300 transition-all">
+                    <Calendar size={14} className="ml-2.5 text-orange-400 pointer-events-none" />
+                    <input type="date" className="w-full p-2 bg-transparent border-none outline-none text-sm font-bold text-gray-700" value={eventForm.registrationDeadline} onChange={e => setEventForm({ ...eventForm, registrationDeadline: e.target.value })} />
+                  </div>
                 </div>
               </div>
 

@@ -375,7 +375,8 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                            <button type="button"
                               key={dateStr}
                               onClick={() => handleDayToggle(dateStr)}
-                              className={`px-5 py-3 rounded-xl text-base font-bold border-2 transition ${formData.attendingDays?.includes(dateStr) ? 'bg-mint-500 text-white border-mint-500 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}>
+                              className={`px-4 py-3 rounded-xl text-base font-bold border-2 transition flex items-center gap-2 ${formData.attendingDays?.includes(dateStr) ? 'bg-mint-500 text-white border-mint-500 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}>
+                              <Calendar size={16} className={formData.attendingDays?.includes(dateStr) ? 'text-white' : 'text-gray-400'} />
                               {formatDateShort(dateStr)}
                            </button>
                         ))}
