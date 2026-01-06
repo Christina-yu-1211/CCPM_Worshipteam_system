@@ -631,7 +631,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </h3>
               {/* SCROLLABLE CONTAINER */}
               <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                {users.filter(u => u.role === 'volunteer').sort((a, b) => b.totalServiceCount - a.totalServiceCount).slice(0, 10).map((u, idx) => (
+                {users.filter(u => u.role === 'volunteer').map(u => {
+                  const count = signups.filter(s => s.volunteerId === u.id).length;
+                  return { ...u, dynamicCount: count };
+                }).sort((a, b) => b.dynamicCount - a.dynamicCount).slice(0, 10).map((u, idx) => (
                   <div
                     key={u.id}
                     onClick={() => setShowHistoryModalUser(u)}
@@ -644,7 +647,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <span className="font-bold text-lg text-gray-700 group-hover:text-vibrant-600 transition">{u.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-xl text-gray-800">{u.totalServiceCount} <span className="text-xs text-gray-400">次</span></span>
+                      <span className="font-mono font-bold text-xl text-gray-800">{u.dynamicCount} <span className="text-xs text-gray-400">次</span></span>
                       <span className="text-gray-300 text-sm group-hover:text-vibrant-500">→</span>
                     </div>
                   </div>

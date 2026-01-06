@@ -271,12 +271,18 @@ export default function App() {
     deleteEvent: async (id: string) => {
       if (confirm('確定刪除？')) {
         const oldEvents = [...events];
+        const oldSignups = [...signups];
+
+        // Optimistic Update: Remove event and its associated signups
         setEvents(prev => prev.filter(e => e.id !== id));
+        setSignups(prev => prev.filter(s => s.eventId !== id));
+
         try {
           await api.deleteEvent(id);
           loadData();
         } catch (err) {
           setEvents(oldEvents);
+          setSignups(oldSignups);
           alert('刪除失敗');
         }
       }
@@ -328,9 +334,13 @@ export default function App() {
     },
     manageUser: async (action: string, data: any) => {
       const oldUsers = [...users];
+      let oldSignups: Signup[] = []; // Declare oldSignups here
+
       try {
         if (action === 'delete') {
+          oldSignups = [...signups]; // Assign here
           setUsers(prev => prev.filter(u => u.id !== data.id));
+          setSignups(prev => prev.filter(s => s.volunteerId !== data.id));
           await api.deleteUser(data.id);
         } else if (action === 'approve') {
           setUsers(prev => prev.map(u => u.id === data.id ? { ...u, isApproved: true } : u));
@@ -364,6 +374,7 @@ export default function App() {
         loadData();
       } catch (err) {
         setUsers(oldUsers);
+        if (oldSignups.length > 0) setSignups(oldSignups);
         alert('操作失敗: ' + err);
       }
     },
