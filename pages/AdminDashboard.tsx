@@ -544,36 +544,35 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
             <ul className="space-y-4">
               {tasks.filter(t => !t.isCompleted && !t.isArchived).map(task => (
-                <li key={task.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition">
-                  <div className="flex items-center gap-3 flex-1 w-full">
+                <li key={task.id} className="flex flex-col gap-3 p-4 hover:bg-gray-50 rounded-2xl border border-transparent hover:border-gray-100 transition group">
+                  <div className="flex items-center gap-3 w-full">
                     <button onClick={() => onUpdateTask({ ...task, isCompleted: true })} className="text-gray-300 hover:text-green-500 transition shrink-0">
                       <div className="w-6 h-6 border-2 border-gray-300 rounded-lg hover:border-green-500"></div>
                     </button>
                     <input
                       defaultValue={task.title}
                       onBlur={(e) => onUpdateTask({ ...task, title: e.target.value })}
-                      className="flex-1 bg-transparent border-none outline-none text-xl text-gray-700 font-medium min-w-0"
+                      className="flex-1 bg-transparent border-none outline-none text-xl text-gray-700 font-bold min-w-0"
                     />
+                    <button
+                      onClick={() => onDeleteTask?.(task.id)}
+                      className="text-gray-300 hover:text-red-500 p-2 transition shrink-0 bg-transparent hover:bg-red-50 rounded-lg"
+                      title="刪除任務"
+                    >
+                      <Trash2 size={20} />
+                    </button>
                   </div>
-                  <div className="relative w-full sm:w-auto flex items-center gap-2">
-                    <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-xl border border-gray-200 focus-within:ring-2 focus-within:ring-mint-300 transition-all w-full sm:w-auto">
+                  <div className="flex items-center gap-2 pl-9">
+                    <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-xl border border-gray-200 focus-within:ring-2 focus-within:ring-mint-300 transition-all w-full max-w-[180px]">
                       <Calendar size={14} className="text-gray-400 shrink-0" />
                       <input
                         type="date"
                         value={task.dueDate}
                         onChange={(e) => onUpdateTask({ ...task, dueDate: e.target.value })}
                         className="text-sm font-bold text-gray-700 bg-transparent border-none outline-none w-full"
-                        placeholder="無期限"
                       />
                     </div>
                   </div>
-                  <button
-                    onClick={() => onDeleteTask?.(task.id)}
-                    className="text-gray-300 hover:text-red-500 p-2 transition shrink-0 bg-gray-50 rounded-full hover:bg-red-50"
-                    title="刪除任務"
-                  >
-                    <Trash2 size={18} />
-                  </button>
                 </li>
               ))}
             </ul>
@@ -659,15 +658,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <h3 className="text-2xl font-extrabold text-gray-800 flex items-center gap-2">
                   <BarChart2 className="text-blue-500" /> 各系列活動熱度
                 </h3>
-                <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
-                  <div className="relative flex items-center bg-white border border-gray-300 rounded focus-within:ring-2 focus-within:ring-mint-300 transition-all">
+                <div className="flex flex-wrap items-center gap-2 bg-gray-50 p-2 rounded-xl">
+                  <div className="relative flex items-center bg-white border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-mint-300 transition-all flex-1 min-w-[140px]">
                     <Calendar size={12} className="ml-2 text-gray-400" />
-                    <input type="date" value={statsStart} onChange={e => setStatsStart(e.target.value)} className="bg-transparent border-none outline-none px-2 py-1 text-sm font-bold text-gray-600" />
+                    <input type="date" value={statsStart} onChange={e => setStatsStart(e.target.value)} className="bg-transparent border-none outline-none px-2 py-2 text-xs sm:text-sm font-bold text-gray-600 w-full" />
                   </div>
-                  <span className="text-gray-400">~</span>
-                  <div className="relative flex items-center bg-white border border-gray-300 rounded focus-within:ring-2 focus-within:ring-mint-300 transition-all">
+                  <span className="text-gray-400 font-bold">~</span>
+                  <div className="relative flex items-center bg-white border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-mint-300 transition-all flex-1 min-w-[140px]">
                     <Calendar size={12} className="ml-2 text-gray-400" />
-                    <input type="date" value={statsEnd} onChange={e => setStatsEnd(e.target.value)} className="bg-transparent border-none outline-none px-2 py-1 text-sm font-bold text-gray-600" />
+                    <input type="date" value={statsEnd} onChange={e => setStatsEnd(e.target.value)} className="bg-transparent border-none outline-none px-2 py-2 text-xs sm:text-sm font-bold text-gray-600 w-full" />
                   </div>
                 </div>
               </div>
