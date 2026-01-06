@@ -202,13 +202,24 @@ export default function App() {
   };
 
   const handleSeriesAction = async (action: 'add' | 'edit' | 'delete', data: any) => {
+    const oldSeries = [...series];
     try {
-      if (action === 'add') await api.createSeries(data);
-      if (action === 'edit') await api.updateSeries(data.id, data);
-      if (action === 'delete') await api.deleteSeries(data.id);
+      if (action === 'add') {
+        const tempId = 'temp-' + Date.now();
+        const newSeries = { ...data, id: tempId };
+        setSeries(prev => [...prev, newSeries]);
+        const created = await api.createSeries(data);
+        setSeries(prev => prev.map(s => s.id === tempId ? created : s));
+      } else if (action === 'edit') {
+        setSeries(prev => prev.map(s => s.id === data.id ? { ...s, ...data } : s));
+        await api.updateSeries(data.id, data);
+      } else if (action === 'delete') {
+        setSeries(prev => prev.filter(s => s.id !== data.id));
+        await api.deleteSeries(data.id);
+      }
       loadData();
     } catch (err) {
-      console.error(err);
+      setSeries(oldSeries);
       alert('操作失敗');
     }
   };
@@ -227,29 +238,47 @@ export default function App() {
 
   const handleAdminActions = {
     addEvent: async (evt: Partial<MinistryEvent>) => {
+      const tempId = 'temp-' + Date.now();
+      const newEvt = {
+        id: tempId,
+        seriesId: series.length > 0 ? series[0].id : '',
+        startTime: '19:00', location: 'TBD',
+        isRegistrationOpen: true, registrationDeadline: getRelativeDate(55),
+        isReportDownloaded: false,
+        mealsConfig: [],
+        ...evt
+      } as MinistryEvent;
+
+      setEvents(prev => [...prev, newEvt]);
+
       try {
-        const newEvt = {
-          seriesId: series.length > 0 ? series[0].id : '',
-          startTime: '19:00', location: 'TBD',
-          isRegistrationOpen: true, registrationDeadline: getRelativeDate(55),
-          isReportDownloaded: false,
-          mealsConfig: [],
-          ...evt
-        };
-        await api.createEvent(newEvt);
+        const created = await api.createEvent(newEvt);
+        setEvents(prev => prev.map(e => e.id === tempId ? created : e));
         loadData();
-      } catch (err) { alert('新增活動失敗'); }
+      } catch (err) {
+        setEvents(prev => prev.filter(e => e.id !== tempId));
+        alert('新增活動失敗');
+      }
     },
     markReportDownloaded: async (eventId: string) => {
+      // Optimistic Update
+      setEvents(prev => prev.map(e => e.id === eventId ? { ...e, isReportDownloaded: true } : e));
       try {
         await api.updateEvent(eventId, { isReportDownloaded: true });
         loadData();
-      } catch (err) { console.error(err); }
+      } catch (err) { console.error(err); loadData(); }
     },
     deleteEvent: async (id: string) => {
       if (confirm('確定刪除？')) {
-        await api.deleteEvent(id);
-        loadData();
+        const oldEvents = [...events];
+        setEvents(prev => prev.filter(e => e.id !== id));
+        try {
+          await api.deleteEvent(id);
+          loadData();
+        } catch (err) {
+          setEvents(oldEvents);
+          alert('刪除失敗');
+        }
       }
     },
     addTask: async (task: AdminTask) => {
@@ -303,34 +332,36 @@ export default function App() {
         if (action === 'delete') {
           setUsers(prev => prev.filter(u => u.id !== data.id));
           await api.deleteUser(data.id);
-        }
-        if (action === 'approve') {
+        } else if (action === 'approve') {
           setUsers(prev => prev.map(u => u.id === data.id ? { ...u, isApproved: true } : u));
           await api.updateUser(data.id, { isApproved: true });
-        }
-        if (action === 'edit') {
+        } else if (action === 'edit') {
           setUsers(prev => prev.map(u => u.id === data.id ? { ...u, ...data } : u));
           await api.updateUser(data.id, data);
-        }
-
-        if (action === 'add' || action === 'change_role') {
-          // Complex or new items still trigger loadData for simplicity
-          if (action === 'change_role') await api.updateUser(data.id, { role: data.newRole });
-          if (action === 'add' && data.name) {
-            await api.createUser({
-              name: data.name,
-              title: data.title || '義工',
-              email: data.email || '',
-              role: 'volunteer',
-              isApproved: true
-            });
-          }
-          loadData();
+        } else if (action === 'change_role') {
+          setUsers(prev => prev.map(u => u.id === data.id ? { ...u, role: data.newRole } : u));
+          await api.updateUser(data.id, { role: data.newRole });
+        } else if (action === 'add' && data.name) {
+          const tempId = 'temp-' + Date.now();
+          const newUser = {
+            id: tempId,
+            name: data.name,
+            title: data.title || '義工',
+            email: data.email || '',
+            role: 'volunteer',
+            isApproved: true,
+            totalServiceCount: 0,
+            consecutiveMonths: 0
+          } as User;
+          setUsers(prev => [...prev, newUser]);
+          const created = await api.createUser(newUser);
+          setUsers(prev => prev.map(u => u.id === tempId ? created : u));
         }
 
         if (action === 'reset_password') {
           alert(`已重設 ${data.name} 的密碼。(模擬)`);
         }
+        loadData();
       } catch (err) {
         setUsers(oldUsers);
         alert('操作失敗: ' + err);
