@@ -1007,9 +1007,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {/* Dates */}
               <div>
                 <label className="block text-gray-500 text-sm font-bold mb-1">活動日期</label>
-                <div className="grid grid-cols-2 gap-4">
-                  <input type="date" className="w-full p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold" value={eventForm.startDate} onChange={e => setEventForm({ ...eventForm, startDate: e.target.value })} />
-                  <input type="date" className="w-full p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold" value={eventForm.endDate} onChange={e => setEventForm({ ...eventForm, endDate: e.target.value })} />
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1">
+                    <div className="text-[10px] uppercase font-black text-gray-400 ml-1 mb-0.5">開始</div>
+                    <input type="date" className="w-full p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold" value={eventForm.startDate} onChange={e => setEventForm({ ...eventForm, startDate: e.target.value })} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[10px] uppercase font-black text-gray-400 ml-1 mb-0.5">結束</div>
+                    <input type="date" className="w-full p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold" value={eventForm.endDate} onChange={e => setEventForm({ ...eventForm, endDate: e.target.value })} />
+                  </div>
                 </div>
               </div>
 
@@ -1019,29 +1025,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <label className="block text-gray-500 text-sm font-bold mb-3">餐食設定 (勾選開放登記)</label>
                   <div className="space-y-2">
                     {eventForm.mealsConfig.map((m, idx) => (
-                      <div key={m.date} className="flex items-center justify-between text-sm">
-                        <span className="font-bold text-gray-700">{m.date}</span>
-                        <div className="flex gap-3">
+                      <div key={m.date} className="flex items-center justify-between text-sm py-1 border-b border-gray-100 last:border-0">
+                        <span className="font-bold text-gray-700">{formatDateShort(m.date)}</span>
+                        <div className="flex gap-4">
                           <label className="flex items-center gap-1 cursor-pointer">
                             <input type="checkbox" checked={m.breakfast} onChange={(e) => {
                               const newCfg = [...eventForm.mealsConfig];
                               newCfg[idx].breakfast = e.target.checked;
                               setEventForm({ ...eventForm, mealsConfig: newCfg });
-                            }} className="accent-mint-500 w-4 h-4" /> 早餐
+                            }} className="accent-mint-500 w-4 h-4" /> <span className="font-bold">早</span>
                           </label>
                           <label className="flex items-center gap-1 cursor-pointer">
                             <input type="checkbox" checked={m.lunch} onChange={(e) => {
                               const newCfg = [...eventForm.mealsConfig];
                               newCfg[idx].lunch = e.target.checked;
                               setEventForm({ ...eventForm, mealsConfig: newCfg });
-                            }} className="accent-mint-500 w-4 h-4" /> 午餐
+                            }} className="accent-mint-500 w-4 h-4" /> <span className="font-bold">午</span>
                           </label>
                           <label className="flex items-center gap-1 cursor-pointer">
                             <input type="checkbox" checked={m.dinner} onChange={(e) => {
                               const newCfg = [...eventForm.mealsConfig];
                               newCfg[idx].dinner = e.target.checked;
                               setEventForm({ ...eventForm, mealsConfig: newCfg });
-                            }} className="accent-mint-500 w-4 h-4" /> 晚餐
+                            }} className="accent-mint-500 w-4 h-4" /> <span className="font-bold">晚</span>
                           </label>
                         </div>
                       </div>

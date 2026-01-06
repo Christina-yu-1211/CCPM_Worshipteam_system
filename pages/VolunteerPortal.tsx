@@ -514,7 +514,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                                           disabled={isLunchLocked(selectedEvent.startDate)}
                                           checked={formData.meals?.some(x => x.date === m.date && x.type === 'breakfast')}
                                           onChange={() => handleMealToggle(m.date, 'breakfast')}
-                                       /> <span className="font-medium text-gray-600 text-sm sm:text-base">早餐</span>
+                                       /> <span className="font-bold text-gray-700 text-sm sm:text-base">早</span>
                                     </label>
                                  )}
                                  {m.lunch && (
@@ -526,7 +526,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                                           disabled={isLunchLocked(selectedEvent.startDate)}
                                           checked={formData.meals?.some(x => x.date === m.date && x.type === 'lunch')}
                                           onChange={() => handleMealToggle(m.date, 'lunch')}
-                                       /> <span className="font-medium text-gray-600 text-sm sm:text-base">午餐</span>
+                                       /> <span className="font-bold text-gray-700 text-sm sm:text-base">午</span>
                                     </label>
                                  )}
                                  {m.dinner && (
@@ -538,7 +538,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                                           disabled={isLunchLocked(selectedEvent.startDate)}
                                           checked={formData.meals?.some(x => x.date === m.date && x.type === 'dinner')}
                                           onChange={() => handleMealToggle(m.date, 'dinner')}
-                                       /> <span className="font-medium text-gray-600 text-sm sm:text-base">晚餐</span>
+                                       /> <span className="font-bold text-gray-700 text-sm sm:text-base">晚</span>
                                     </label>
                                  )}
                               </div>
