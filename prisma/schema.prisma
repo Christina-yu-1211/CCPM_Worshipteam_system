@@ -84,11 +84,3 @@ model EmailLog {
   sentAt         String
   status         String
 }
-
-model EmailTemplate {
-  id        String   @id @default(uuid())
-  type      String   @unique // e.g., 'signup_success', 'admin_overdue_notice'
-  subject   String
-  content   String   @db.Text
-  updatedAt DateTime @updatedAt
-}
