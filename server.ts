@@ -276,6 +276,13 @@ app.post('/api/signups', async (req, res) => {
 app.put('/api/signups/:id', async (req, res) => {
     try {
         const { attendingDays, meals, ...rest } = req.body;
+
+        // 1. Fetch current signup and its associated event
+        const oldSignup = await prisma.signup.findUnique({
+            where: { id: req.params.id },
+            include: { event: true, volunteer: true }
+        });
+
         const signup = await prisma.signup.update({
             where: { id: req.params.id },
             data: {
@@ -284,6 +291,29 @@ app.put('/api/signups/:id', async (req, res) => {
                 meals: typeof meals === 'object' ? JSON.stringify(meals) : meals
             }
         });
+
+        // 2. If registration is closed, notify admins
+        if (oldSignup && !oldSignup.event.isRegistrationOpen) {
+            const admins = await prisma.user.findMany({
+                where: { role: { in: ['core_admin', 'admin'] } }
+            });
+
+            const subject = `【報名異動通知】${oldSignup.volunteer.name} 修改了已關閉報名的活動`;
+            const html = `
+                <h3>報名異動提醒 (活動已關閉報名)</h3>
+                <p>義工 <strong>${oldSignup.volunteer.name}</strong> 修改了活動 <strong>${oldSignup.event.title}</strong> 的報名內容。</p>
+                <hr/>
+                <p><strong>異動詳情：</strong></p>
+                <p>請至後台查看最新報名資訊。</p>
+            `;
+
+            for (const admin of admins) {
+                if (admin.email && admin.email !== 'admin') {
+                    await sendEmail(admin.email, subject, html);
+                }
+            }
+        }
+
         res.json(signup);
     } catch (e) {
         console.error(e);

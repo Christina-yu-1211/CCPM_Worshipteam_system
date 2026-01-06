@@ -228,30 +228,62 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
       window.scrollTo(0, 0);
    };
 
-   // Chart Data Preparation
+   // Dynamic Stats Calculation
+   const userSignups = signups.filter(s => s.volunteerId === user.id);
+   const totalServiceCount = userSignups.length;
+
+   const getConsecutiveMonths = () => {
+      if (userSignups.length === 0) return 0;
+      const eventMonths = userSignups.map(s => {
+         const evt = events.find(e => e.id === s.eventId);
+         return evt ? evt.startDate.slice(0, 7) : null;
+      }).filter(Boolean).sort().reverse();
+
+      const uniqueMonths = [...new Set(eventMonths)] as string[];
+      if (uniqueMonths.length === 0) return 0;
+
+      let count = 0;
+      const now = new Date();
+      const currentMonthStr = now.toISOString().slice(0, 7);
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().slice(0, 7);
+
+      if (uniqueMonths[0] !== currentMonthStr && uniqueMonths[0] !== lastMonth) {
+         return 0;
+      }
+
+      for (let i = 0; i < uniqueMonths.length; i++) {
+         if (i === 0) { count = 1; continue; }
+         const prev = new Date(uniqueMonths[i - 1]);
+         const curr = new Date(uniqueMonths[i]);
+         prev.setMonth(prev.getMonth() - 1);
+         if (prev.toISOString().slice(0, 7) === curr.toISOString().slice(0, 7)) {
+            count++;
+         } else { break; }
+      }
+      return count;
+   };
+   const consecutiveMonths = getConsecutiveMonths();
+
    const getMonthlyStats = () => {
       const stats: Record<string, number> = {};
       const start = new Date(chartRange.start);
       const end = new Date(chartRange.end);
-      end.setMonth(end.getMonth() + 1); // Inclusive
+      end.setMonth(end.getMonth() + 1);
 
-      // Init keys
       let curr = new Date(start);
       while (curr < end) {
-         const key = curr.toISOString().slice(0, 7); // YYYY-MM
+         const key = curr.toISOString().slice(0, 7);
          stats[key] = 0;
          curr.setMonth(curr.getMonth() + 1);
       }
 
-      // Count signups
-      signups.filter(s => s.volunteerId === user.id).forEach(s => {
+      userSignups.forEach(s => {
          const evt = events.find(e => e.id === s.eventId);
          if (evt) {
             const key = evt.startDate.slice(0, 7);
             if (stats[key] !== undefined) stats[key]++;
          }
       });
-
       return Object.entries(stats).sort();
    };
 
@@ -264,11 +296,11 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-8 grid grid-cols-2 gap-4 text-center animate-fade-in hover:shadow-md transition">
             <div onClick={() => setShowHistoryModal(true)} className="p-2 cursor-pointer hover:bg-gray-50 rounded-xl transition">
                <div className="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2 flex items-center justify-center gap-1"><History size={14} /> 累積服事</div>
-               <div className="text-4xl font-black text-mint-600">{user.totalServiceCount}</div>
+               <div className="text-4xl font-black text-mint-600">{totalServiceCount}</div>
             </div>
             <div onClick={() => setShowChartModal(true)} className="p-2 border-l-2 border-gray-100 cursor-pointer hover:bg-gray-50 rounded-xl transition">
                <div className="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2 flex items-center justify-center gap-1"><BarChart2 size={14} /> 連續月數</div>
-               <div className="text-4xl font-black text-vibrant-500">{user.consecutiveMonths}</div>
+               <div className="text-4xl font-black text-vibrant-500">{consecutiveMonths}</div>
             </div>
          </div>
 
