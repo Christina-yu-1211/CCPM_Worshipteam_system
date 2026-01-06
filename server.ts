@@ -186,16 +186,32 @@ app.post('/api/events', async (req, res) => {
 
 app.put('/api/events/:id', async (req, res) => {
     try {
+        const { id: _, series: __, signups: ___, mealsConfig, ...rest } = req.body;
+
+        // Strictly pick only fields that exist in the schema
+        const allowedFields = [
+            'seriesId', 'title', 'startDate', 'endDate', 'startTime',
+            'location', 'isRegistrationOpen', 'registrationDeadline',
+            'remarks', 'isReportDownloaded'
+        ];
+
+        const updateData: any = {};
+        allowedFields.forEach(field => {
+            if (rest[field] !== undefined) {
+                updateData[field] = rest[field];
+            }
+        });
+
         const event = await prisma.ministryEvent.update({
             where: { id: req.params.id },
             data: {
-                ...req.body,
-                mealsConfig: req.body.mealsConfig ? JSON.stringify(req.body.mealsConfig) : undefined
+                ...updateData,
+                mealsConfig: mealsConfig ? JSON.stringify(mealsConfig) : undefined
             },
         });
         res.json(event);
     } catch (e) {
-        console.error(e);
+        console.error('Update Event Error:', e);
         res.status(400).json({ error: '更新活動失敗' });
     }
 });
