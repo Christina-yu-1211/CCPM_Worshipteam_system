@@ -18,7 +18,10 @@ const getRelativeDate = (diffDays: number) => {
 
 export default function App() {
   // --- STATE ---
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('currentUser');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [currentView, setCurrentView] = useState<'main' | 'settings'>('main');
 
   const [users, setUsers] = useState<User[]>([]);
@@ -80,6 +83,7 @@ export default function App() {
         return;
       }
       setCurrentUser(user);
+      localStorage.setItem('currentUser', JSON.stringify(user));
     } else {
       alert('登入失敗：Email 或密碼錯誤，或者您尚未註冊。');
     }
@@ -143,6 +147,7 @@ export default function App() {
 
   const handleLogout = () => {
     setCurrentUser(null);
+    localStorage.removeItem('currentUser');
     setEmail('');
     setPassword('');
     setViewMode('login');
