@@ -196,7 +196,7 @@ export default function App() {
       // Silently refresh in background
       loadData();
     } catch (err) {
-      alert('報名或更新失敗');
+      alert('報名或更新失敗: ' + err);
       loadData(); // Revert on actual error
     }
   };
