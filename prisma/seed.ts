@@ -7,8 +7,12 @@ require('dotenv').config();
 const prisma = new PrismaClient();
 
 async function main() {
+    console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
+    if (!process.env.DATABASE_URL) {
+        throw new Error('DATABASE_URL is missing from environment');
+    }
     const admin = await prisma.user.upsert({
-        where: { email: 'admin' },
+        where: { id: 'root_admin' },
         update: {},
         create: {
             id: 'root_admin',
@@ -22,7 +26,7 @@ async function main() {
             consecutiveMonths: 0
         },
     });
-    console.log({ admin });
+    console.log('Admin user ensured');
 
     const templates = [
         {
