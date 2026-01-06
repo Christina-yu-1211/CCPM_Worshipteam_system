@@ -314,18 +314,145 @@ app.put('/api/signups/:id', async (req, res) => {
             console.log(`[Notification] Found ${admins.length} potential admins to notify.`);
 
             if (admins.length > 0) {
+                // Parse old data
+                const oldAttendingDays = JSON.parse(oldSignup.attendingDays as string || '[]');
+                const oldMeals = JSON.parse(oldSignup.meals as string || '[]');
+
+                // Parse new data
+                const newAttendingDays = typeof attendingDays === 'object' ? attendingDays : JSON.parse(attendingDays || '[]');
+                const newMeals = typeof meals === 'object' ? meals : JSON.parse(meals || '[]');
+
+                // Helper function to format transport mode
+                const formatTransport = (mode: string) => mode === 'shuttle' ? '搭乘交通車' : '自行前往';
+
+                // Helper function to format location
+                const formatLocation = (loc: string) => {
+                    const map: any = { 'Zaoqiao': '造橋', 'Zhunan': '竹南', 'HSR_Miaoli': '高鐵苗栗' };
+                    return map[loc] || loc;
+                };
+
+                // Helper function to format meals
+                const formatMeals = (meals: any[]) => {
+                    if (!meals || meals.length === 0) return '無';
+                    return meals.map((m: any) => `${m.date} ${m.type === 'breakfast' ? '早' : m.type === 'lunch' ? '午' : '晚'}`).join('、');
+                };
+
+                // Build comparison rows
+                const changes: { field: string, old: string, new: string }[] = [];
+
+                if (oldSignup.transportMode !== (rest.transportMode || oldSignup.transportMode)) {
+                    changes.push({
+                        field: '去程交通',
+                        old: formatTransport(oldSignup.transportMode),
+                        new: formatTransport(rest.transportMode || oldSignup.transportMode)
+                    });
+                }
+
+                if (oldSignup.transportMode === 'shuttle' && oldSignup.arrivalLocation !== (rest.arrivalLocation || oldSignup.arrivalLocation)) {
+                    changes.push({
+                        field: '去程地點',
+                        old: formatLocation(oldSignup.arrivalLocation || ''),
+                        new: formatLocation(rest.arrivalLocation || oldSignup.arrivalLocation || '')
+                    });
+                }
+
+                if (oldSignup.arrivalTime !== (rest.arrivalTime || oldSignup.arrivalTime)) {
+                    changes.push({
+                        field: '去程時間',
+                        old: oldSignup.arrivalTime || '',
+                        new: rest.arrivalTime || oldSignup.arrivalTime || ''
+                    });
+                }
+
+                if (oldSignup.departureMode !== (rest.departureMode || oldSignup.departureMode)) {
+                    changes.push({
+                        field: '回程交通',
+                        old: formatTransport(oldSignup.departureMode || 'self'),
+                        new: formatTransport(rest.departureMode || oldSignup.departureMode || 'self')
+                    });
+                }
+
+                if (oldSignup.departureMode === 'shuttle' && oldSignup.departureLocation !== (rest.departureLocation || oldSignup.departureLocation)) {
+                    changes.push({
+                        field: '回程地點',
+                        old: formatLocation(oldSignup.departureLocation || ''),
+                        new: formatLocation(rest.departureLocation || oldSignup.departureLocation || '')
+                    });
+                }
+
+                if (oldSignup.departureTime !== (rest.departureTime || oldSignup.departureTime)) {
+                    changes.push({
+                        field: '回程時間',
+                        old: oldSignup.departureTime || '',
+                        new: rest.departureTime || oldSignup.departureTime || ''
+                    });
+                }
+
+                if (JSON.stringify(oldAttendingDays) !== JSON.stringify(newAttendingDays)) {
+                    changes.push({
+                        field: '參加天數',
+                        old: oldAttendingDays.join('、') || '無',
+                        new: newAttendingDays.join('、') || '無'
+                    });
+                }
+
+                if (JSON.stringify(oldMeals) !== JSON.stringify(newMeals)) {
+                    changes.push({
+                        field: '餐食登記',
+                        old: formatMeals(oldMeals),
+                        new: formatMeals(newMeals)
+                    });
+                }
+
+                if (oldSignup.notes !== (rest.notes || oldSignup.notes || '')) {
+                    changes.push({
+                        field: '備註',
+                        old: oldSignup.notes || '無',
+                        new: rest.notes || oldSignup.notes || '無'
+                    });
+                }
+
+                // Build change table HTML
+                let changeTableHtml = '';
+                if (changes.length > 0) {
+                    changeTableHtml = `
+                        <h4 style="color: #333; margin-top: 20px;">📋 異動內容對照：</h4>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+                            <thead>
+                                <tr style="background-color: #f8f9fa;">
+                                    <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; width: 25%;">欄位</th>
+                                    <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; width: 37.5%;">原始資料</th>
+                                    <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; width: 37.5%;">更新後資料</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${changes.map(c => `
+                                    <tr>
+                                        <td style="border: 1px solid #dee2e6; padding: 10px; font-weight: bold;">${c.field}</td>
+                                        <td style="border: 1px solid #dee2e6; padding: 10px; color: #dc3545;">${c.old}</td>
+                                        <td style="border: 1px solid #dee2e6; padding: 10px; color: #28a745; font-weight: bold;">${c.new}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    changeTableHtml = '<p style="color: #6c757d; font-style: italic;">（系統未偵測到明顯變更，可能為重新送出相同資料）</p>';
+                }
+
                 const subject = `【報名異動通知】${oldSignup.volunteer.name} 修改了已關閉報名的活動`;
                 const html = `
                     <div style="font-family: sans-serif; line-height: 1.6;">
-                        <h3 style="color: #d9534f;">報名異動提醒 (活動已關閉報名)</h3>
+                        <h3 style="color: #d9534f;">⚠️ 報名異動提醒 (活動已關閉報名)</h3>
                         <p>義工 <strong>${oldSignup.volunteer.name}</strong> 剛剛修改了活動 <strong>${oldSignup.event.title}</strong> 的報名內容。</p>
                         <p>由於該活動目前處於「<strong>報名截止</strong>」狀態，請管理員核對內容是否有誤。</p>
-                        <hr/>
+                        <hr style="border: none; border-top: 1px solid #dee2e6; margin: 20px 0;"/>
                         <p><strong>活動名稱：</strong>${oldSignup.event.title}</p>
                         <p><strong>義工姓名：</strong>${oldSignup.volunteer.name}</p>
                         <p><strong>通知時間：</strong>${new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}</p>
-                        <br/>
-                        <p>請登入管理後台查看最新報名資訊。</p>
+                        ${changeTableHtml}
+                        <hr style="border: none; border-top: 1px solid #dee2e6; margin: 20px 0;"/>
+                        <p style="color: #6c757d; font-size: 14px;">💡 請登入管理後台查看完整報名資訊。</p>
                     </div>
                 `;
 
