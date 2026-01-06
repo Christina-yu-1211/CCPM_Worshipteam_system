@@ -298,7 +298,9 @@ export default function App() {
         <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-lg w-full">
           <div className="text-center mb-10">
             <img src="https://duk.tw/s6FP48.png" alt="Logo" className="w-24 h-24 mx-auto mb-4 object-contain" />
-            <h1 className="text-3xl font-bold text-gray-800 tracking-widest">禱告山祭壇服事系統</h1>
+            <h1 className="text-3xl font-bold text-gray-800 tracking-widest">
+              禱告山祭壇<br className="sm:hidden" />服事系統
+            </h1>
             <p className="text-gray-500 text-lg mt-2">{viewMode === 'login' ? '登入以繼續' : '帳號註冊'}</p>
           </div>
           {/* Login/Register Forms */}
