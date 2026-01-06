@@ -379,10 +379,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             { id: 'events', icon: Calendar, label: '活動管理' },
             { id: 'users', icon: UserPlus, label: '義工' },
             { id: 'tasks', icon: CheckSquare, label: '任務' },
+            { id: 'emails', icon: FileText, label: '郵件管理' },
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as 'overview' | 'events' | 'users' | 'tasks' | 'reports')}
+              onClick={() => setActiveTab(tab.id as 'overview' | 'events' | 'users' | 'tasks' | 'reports' | 'emails')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-base font-bold transition whitespace-nowrap ${activeTab === tab.id
                 ? 'bg-mint-300 text-mint-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-900'
