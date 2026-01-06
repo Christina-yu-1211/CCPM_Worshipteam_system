@@ -23,6 +23,37 @@ async function main() {
         },
     });
     console.log({ admin });
+
+    const templates = [
+        {
+            type: 'signup_success',
+            subject: '【報名成功】禱告山祭壇服事系統',
+            content: `<h3>親愛的同工，您好：</h3>
+<p>您已成功報名 <strong>{{eventTitle}}</strong>。</p>
+<p><strong>服事日期：</strong>{{startDate}} ~ {{endDate}}</p>
+<p>願神親自報答您的擺上！</p>
+<hr/>
+<p><em>(本郵件為系統自動發送)</em></p>`
+        },
+        {
+            type: 'admin_overdue_notice',
+            subject: '【管理員提醒】任務逾期通知',
+            content: `<h3>管理員您好：</h3>
+<p>系統偵測到下列任務已超過期限且尚未標示完成：</p>
+<p><strong>任務名稱：</strong>{{taskTitle}}</p>
+<p><strong>截止日期：</strong>{{dueDate}}</p>
+<p>請撥冗核對處理。</p>`
+        }
+    ];
+
+    for (const t of templates) {
+        await prisma.emailTemplate.upsert({
+            where: { type: t.type },
+            update: {},
+            create: t
+        });
+    }
+    console.log('Default email templates seeded.');
 }
 
 main()

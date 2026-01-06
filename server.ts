@@ -12,8 +12,11 @@ const require = createRequire(import.meta.url);
 const { PrismaClient } = require('@prisma/client');
 require('dotenv').config();
 
-const app = express();
+import cron from 'node-cron';
+import { sendEmail } from './mailService.js';
+
 const prisma = new PrismaClient();
+const app = express();
 
 app.use(cors());
 app.use(express.json());
@@ -231,12 +234,87 @@ app.post('/api/signups', async (req, res) => {
                 ...rest,
                 attendingDays: JSON.stringify(attendingDays),
                 meals: JSON.stringify(meals)
-            }
+            },
+            include: { volunteer: true, event: true }
         });
+
+        // --- EMAIL NOTIFICATION USING TEMPLATE ---
+        if (signup.volunteer.email) {
+            const template = await prisma.emailTemplate.findUnique({ where: { type: 'signup_success' } });
+            if (template) {
+                let subject = template.subject;
+                let html = template.content
+                    .replace('{{eventTitle}}', signup.event.title)
+                    .replace('{{startDate}}', signup.event.startDate)
+                    .replace('{{endDate}}', signup.event.endDate);
+
+                await sendEmail(signup.volunteer.email, subject, html);
+
+                await prisma.emailLog.create({
+                    data: {
+                        recipientName: signup.volunteer.name,
+                        recipientEmail: signup.volunteer.email,
+                        subject: subject,
+                        preview: html.substring(0, 100).replace(/<[^>]*>?/gm, ''),
+                        sentAt: new Date().toLocaleString(),
+                        status: 'success'
+                    }
+                });
+            }
+        }
+
         res.json(signup);
     } catch (e) {
         console.error(e);
         res.status(400).json({ error: '報名失敗' });
+    }
+});
+
+// --- EMAIL TEMPLATES ---
+app.get('/api/email-templates', async (req, res) => {
+    try {
+        const templates = await prisma.emailTemplate.findMany();
+        res.json(templates);
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: '無法取得郵件範本' });
+    }
+});
+
+app.put('/api/email-templates/:id', async (req, res) => {
+    try {
+        const template = await prisma.emailTemplate.update({
+            where: { id: req.params.id },
+            data: req.body
+        });
+        res.json(template);
+    } catch (e) {
+        console.error(e);
+        res.status(400).json({ error: '更新郵件範本失敗' });
+    }
+});
+
+// --- MANUAL EMAIL BROADCAST ---
+app.post('/api/send-email-broadcast', async (req, res) => {
+    const { recipients, subject, content } = req.body;
+    try {
+        for (const r of recipients) {
+            await sendEmail(r.email, subject, content);
+            await prisma.emailLog.create({
+                data: {
+                    recipientName: r.name,
+                    recipientEmail: r.email,
+                    subject: subject,
+                    preview: content.substring(0, 100).replace(/<[^>]*>?/gm, ''),
+                    sentAt: new Date().toLocaleString(),
+                    status: 'success'
+                }
+            });
+        }
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: '郵件廣播失敗' });
     }
 });
 
@@ -306,8 +384,6 @@ app.delete('/api/tasks/:id', async (req, res) => {
 
 
 // --- AUTOMATED JOBS (CRON) ---
-import cron from 'node-cron';
-import { sendEmail } from './mailService.js';
 
 // Helper to get formatted date string YYYY-MM-DD
 const getDateString = (date: Date) => date.toISOString().split('T')[0];

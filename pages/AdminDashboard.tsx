@@ -28,7 +28,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   currentUser, events, signups, series, users, tasks,
   onAddEvent, onDeleteEvent, onUpdateTask, onAddTask, onDeleteTask, onManageUser, onSeriesAction
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'users' | 'tasks' | 'reports'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'users' | 'tasks' | 'reports' | 'emails'>('overview');
 
   // Expanded State
   const [expandedEventIds, setExpandedEventIds] = useState<string[]>([]);
@@ -83,6 +83,55 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Series Form
   const [seriesForm, setSeriesForm] = useState<Partial<EventSeries>>({ name: '', color: '#10B981' });
   const [isEditingSeries, setIsEditingSeries] = useState(false);
+
+  // Email Management State
+  const [emailTemplates, setEmailTemplates] = useState<any[]>([]);
+  const [broadcastSubject, setBroadcastSubject] = useState('');
+  const [broadcastContent, setBroadcastContent] = useState('');
+  const [broadcastRecipients, setBroadcastRecipients] = useState<string[]>([]); // User IDs
+  const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'emails') {
+      import('../api').then(({ api }) => {
+        api.getEmailTemplates().then(setEmailTemplates);
+      });
+    }
+  }, [activeTab]);
+
+  const handleUpdateTemplate = async (id: string, subject: string, content: string) => {
+    const { api } = await import('../api');
+    await api.updateEmailTemplate(id, { subject, content });
+    const updated = await api.getEmailTemplates();
+    setEmailTemplates(updated);
+    alert('範本更新成功');
+  };
+
+  const handleSendBroadcast = async () => {
+    if (!broadcastSubject || !broadcastContent || broadcastRecipients.length === 0) {
+      alert('請填寫主旨、內容並選擇至少一位收件者');
+      return;
+    }
+    const recipients = users.filter(u => broadcastRecipients.includes(u.id) && u.email).map(u => ({ name: u.name, email: u.email }));
+    if (recipients.length === 0) {
+      alert('所選用戶皆無有效 Email');
+      return;
+    }
+
+    setIsSendingBroadcast(true);
+    try {
+      const { api } = await import('../api');
+      await api.sendEmailBroadcast({ recipients, subject: broadcastSubject, content: broadcastContent });
+      alert('郵件已成功排程發送');
+      setBroadcastSubject('');
+      setBroadcastContent('');
+      setBroadcastRecipients([]);
+    } catch (err) {
+      alert('發送失敗');
+    } finally {
+      setIsSendingBroadcast(false);
+    }
+  };
 
   // Helpers
   const volunteerMap = Object.fromEntries(users.map(u => [u.id, u]));
@@ -335,8 +384,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               key={tab.id}
               onClick={() => setActiveTab(tab.id as 'overview' | 'events' | 'users' | 'tasks' | 'reports')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-base font-bold transition whitespace-nowrap ${activeTab === tab.id
-                  ? 'bg-mint-300 text-mint-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-900'
+                ? 'bg-mint-300 text-mint-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-900'
                 }`}
             >
               <tab.icon size={18} /> {tab.label}
@@ -1072,6 +1121,137 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button onClick={handleEventSubmit} className="w-full py-4 bg-mint-500 text-white font-black rounded-xl hover:bg-mint-600 transition">
                 {isEditingEvent ? '儲存變更' : '建立活動'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* --- EMAIL MANAGEMENT TAB --- */}
+      {activeTab === 'emails' && (
+        <div className="space-y-10">
+          {/* Manual Broadcast Section */}
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-200">
+            <h3 className="font-extrabold text-2xl text-gray-800 mb-6 flex items-center gap-3">
+              <TrendingUp size={24} className="text-mint-500" /> 手動郵件廣播
+            </h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-500 text-sm font-bold mb-2">主旨</label>
+                  <input
+                    className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 font-bold"
+                    value={broadcastSubject}
+                    onChange={e => setBroadcastSubject(e.target.value)}
+                    placeholder="請輸入郵件主旨..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-500 text-sm font-bold mb-2">內容 (支援 HTML)</label>
+                  <textarea
+                    className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 font-bold h-64"
+                    value={broadcastContent}
+                    onChange={e => setBroadcastContent(e.target.value)}
+                    placeholder="<h3>同工平安，</h3> <p>這是一則重要公告...</p>"
+                  />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-500 text-sm font-bold mb-2">選擇收件者 (義工)</label>
+                  <div className="max-h-[300px] overflow-y-auto border border-gray-100 rounded-xl p-4 bg-gray-50/50 space-y-2">
+                    <label className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition border border-transparent hover:border-mint-200">
+                      <input
+                        type="checkbox"
+                        className="w-5 h-5 accent-mint-500"
+                        checked={broadcastRecipients.length === users.filter(u => u.role === 'volunteer' && u.email).length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setBroadcastRecipients(users.filter(u => u.role === 'volunteer' && u.email).map(u => u.id));
+                          } else {
+                            setBroadcastRecipients([]);
+                          }
+                        }}
+                      />
+                      <span className="font-black text-gray-700">全選所有義工</span>
+                    </label>
+                    <hr className="border-gray-200 my-2" />
+                    {users.filter(u => u.role === 'volunteer' && u.email).map(u => (
+                      <label key={u.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition border border-transparent hover:border-mint-200">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 accent-mint-500"
+                          checked={broadcastRecipients.includes(u.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setBroadcastRecipients([...broadcastRecipients, u.id]);
+                            } else {
+                              setBroadcastRecipients(broadcastRecipients.filter(id => id !== u.id));
+                            }
+                          }}
+                        />
+                        <span className="font-bold text-gray-600">{u.name} <small className="text-gray-400 font-normal">({u.email})</small></span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={handleSendBroadcast}
+                  disabled={isSendingBroadcast}
+                  className={`w-full py-4 rounded-xl text-white font-black text-lg transition shadow-lg ${isSendingBroadcast ? 'bg-gray-400' : 'bg-mint-500 hover:bg-mint-600 shadow-mint-100'}`}
+                >
+                  {isSendingBroadcast ? '發送中...' : '立即發送廣播'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Template Management Section */}
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-200">
+            <h3 className="font-extrabold text-2xl text-gray-800 mb-6 flex items-center gap-3">
+              <Palette size={24} className="text-blue-500" /> 系統郵件範本編輯
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {emailTemplates.map(tpl => (
+                <div key={tpl.id} className="border-2 border-gray-100 rounded-2xl p-6 space-y-4 hover:border-blue-100 transition">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black uppercase tracking-widest bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
+                      {tpl.type === 'signup_success' ? '報名成功通知' : '管理員逾期提醒'}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-gray-500 text-xs font-bold mb-1">主旨範本</label>
+                    <input
+                      className="w-full p-2 border border-gray-200 rounded-lg font-bold bg-gray-50"
+                      value={tpl.subject}
+                      onChange={e => {
+                        const newTpl = [...emailTemplates];
+                        const idx = newTpl.findIndex(t => t.id === tpl.id);
+                        newTpl[idx].subject = e.target.value;
+                        setEmailTemplates(newTpl);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-500 text-xs font-bold mb-1">內容範本</label>
+                    <textarea
+                      className="w-full p-2 border border-gray-200 rounded-lg font-medium bg-gray-50 h-40 text-sm"
+                      value={tpl.content}
+                      onChange={e => {
+                        const newTpl = [...emailTemplates];
+                        const idx = newTpl.findIndex(t => t.id === tpl.id);
+                        newTpl[idx].content = e.target.value;
+                        setEmailTemplates(newTpl);
+                      }}
+                    />
+                    <p className="text-[10px] text-gray-400 mt-2">可使用變數：{'{{eventTitle}}, {{startDate}}, {{endDate}}, {{taskTitle}}, {{dueDate}}'}</p>
+                  </div>
+                  <button
+                    onClick={() => handleUpdateTemplate(tpl.id, tpl.subject, tpl.content)}
+                    className="w-full py-2 bg-blue-500 text-white rounded-lg font-bold hover:bg-blue-600 transition"
+                  >
+                    儲存範本變更
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </div>
