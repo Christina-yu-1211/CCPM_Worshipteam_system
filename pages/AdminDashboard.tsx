@@ -555,17 +555,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       className="flex-1 bg-transparent border-none outline-none text-xl text-gray-700 font-medium min-w-0"
                     />
                   </div>
-                  {/* Optional date input */}
-                  <input
-                    type="date"
-                    value={task.dueDate}
-                    onChange={(e) => onUpdateTask({ ...task, dueDate: e.target.value })}
-                    className="text-sm font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg border-none outline-none focus:ring-1 focus:ring-mint-300 w-full sm:w-auto"
-                    placeholder="無期限"
-                  />
+                  <div className="relative w-full sm:w-auto flex items-center gap-2">
+                    <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-xl border border-gray-200 focus-within:ring-2 focus-within:ring-mint-300 transition-all w-full sm:w-auto">
+                      <Calendar size={14} className="text-gray-400 shrink-0" />
+                      <input
+                        type="date"
+                        value={task.dueDate}
+                        onChange={(e) => onUpdateTask({ ...task, dueDate: e.target.value })}
+                        className="text-sm font-bold text-gray-700 bg-transparent border-none outline-none w-full"
+                        placeholder="無期限"
+                      />
+                    </div>
+                  </div>
                   <button
                     onClick={() => onDeleteTask?.(task.id)}
-                    className="text-gray-300 hover:text-red-500 p-2 transition shrink-0"
+                    className="text-gray-300 hover:text-red-500 p-2 transition shrink-0 bg-gray-50 rounded-full hover:bg-red-50"
                     title="刪除任務"
                   >
                     <Trash2 size={18} />

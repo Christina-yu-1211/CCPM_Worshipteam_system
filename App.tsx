@@ -159,37 +159,45 @@ export default function App() {
 
     try {
       if (existing) {
+        // Optimistic Update
+        setSignups(prev => prev.map(s => s.id === existing.id ? { ...s, ...data } : s));
         await api.updateSignup(existing.id, data);
-        alert('報名資料已更新');
       } else {
+        const tempId = 'temp-' + Date.now();
         const newSignup = {
+          id: tempId,
           eventId: data.eventId!,
           volunteerId: data.volunteerId!,
           submissionDate: new Date().toISOString(),
-          // Defaults
           attendingDays: [], meals: [], transportMode: 'self' as const,
           ...data
-        };
+        } as Signup;
 
-        await api.createSignup(newSignup);
+        // Optimistic Update
+        setSignups(prev => [...prev, newSignup]);
 
-        // Update User Stats (Simplified)
+        const created = await api.createSignup(newSignup);
+        // Replace temp signup
+        setSignups(prev => prev.map(s => s.id === tempId ? created : s));
+
+        // Update User Stats Optimistically
         if (currentUser) {
-          const updatedUser = await api.updateUser(currentUser.id, {
-            totalServiceCount: currentUser.totalServiceCount + 1
-          });
+          const updatedUser = { ...currentUser, totalServiceCount: currentUser.totalServiceCount + 1 };
           setCurrentUser(updatedUser);
+          setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
 
-          // Check Badges
+          await api.updateUser(currentUser.id, { totalServiceCount: updatedUser.totalServiceCount });
+
           if ([3, 5, 7, 10, 15, 20].includes(updatedUser.totalServiceCount)) {
             setShowBadge({ count: updatedUser.totalServiceCount, streak: updatedUser.consecutiveMonths });
           }
         }
       }
+      // Silently refresh in background
       loadData();
     } catch (err) {
-      alert('報名失敗');
-      console.error(err);
+      alert('報名或更新失敗');
+      loadData(); // Revert on actual error
     }
   };
 
@@ -245,28 +253,70 @@ export default function App() {
       }
     },
     addTask: async (task: AdminTask) => {
-      await api.createTask(task);
-      loadData();
+      // Optimistic Update
+      const tempId = Date.now().toString();
+      const newTask = { ...task, id: tempId };
+      setTasks(prev => [newTask, ...prev]);
+
+      try {
+        const created = await api.createTask(task);
+        // Replace temp task with real one from server
+        setTasks(prev => prev.map(t => t.id === tempId ? created : t));
+      } catch (err) {
+        // Rollback on failure
+        setTasks(prev => prev.filter(t => t.id !== tempId));
+        alert('新增任務失敗');
+      }
     },
     updateTask: async (task: AdminTask) => {
-      await api.updateTask(task.id, task);
-      loadData();
+      // Optimistic Update
+      const oldTasks = [...tasks];
+      setTasks(prev => prev.map(t => t.id === task.id ? task : t));
+
+      try {
+        await api.updateTask(task.id, task);
+        // No need to reload all data
+      } catch (err) {
+        // Rollback
+        setTasks(oldTasks);
+        console.error('Update task failed', err);
+      }
     },
     deleteTask: async (id: string) => {
       if (confirm('確定刪除此任務？')) {
-        await api.deleteTask(id);
-        loadData();
+        const oldTasks = [...tasks];
+        // Optimistic Update
+        setTasks(prev => prev.filter(t => t.id !== id));
+
+        try {
+          await api.deleteTask(id);
+        } catch (err) {
+          // Rollback
+          setTasks(oldTasks);
+          alert('刪除失敗');
+        }
       }
     },
     manageUser: async (action: string, data: any) => {
+      const oldUsers = [...users];
       try {
-        if (action === 'delete') await api.deleteUser(data.id);
-        if (action === 'approve') await api.updateUser(data.id, { isApproved: true });
-        if (action === 'edit') await api.updateUser(data.id, data);
-        if (action === 'change_role') await api.updateUser(data.id, { role: data.newRole });
+        if (action === 'delete') {
+          setUsers(prev => prev.filter(u => u.id !== data.id));
+          await api.deleteUser(data.id);
+        }
+        if (action === 'approve') {
+          setUsers(prev => prev.map(u => u.id === data.id ? { ...u, isApproved: true } : u));
+          await api.updateUser(data.id, { isApproved: true });
+        }
+        if (action === 'edit') {
+          setUsers(prev => prev.map(u => u.id === data.id ? { ...u, ...data } : u));
+          await api.updateUser(data.id, data);
+        }
 
-        if (action === 'add') {
-          if (data.name) {
+        if (action === 'add' || action === 'change_role') {
+          // Complex or new items still trigger loadData for simplicity
+          if (action === 'change_role') await api.updateUser(data.id, { role: data.newRole });
+          if (action === 'add' && data.name) {
             await api.createUser({
               name: data.name,
               title: data.title || '義工',
@@ -275,13 +325,16 @@ export default function App() {
               isApproved: true
             });
           }
+          loadData();
         }
+
         if (action === 'reset_password') {
-          // In real app, call API to reset
           alert(`已重設 ${data.name} 的密碼。(模擬)`);
         }
-        loadData();
-      } catch (err) { alert('操作失敗: ' + err); }
+      } catch (err) {
+        setUsers(oldUsers);
+        alert('操作失敗: ' + err);
+      }
     },
     updateUser: async (data: Partial<User>) => {
       if (!data.id) return;
