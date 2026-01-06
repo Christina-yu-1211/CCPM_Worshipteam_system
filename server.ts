@@ -310,23 +310,47 @@ app.put('/api/signups/:id', async (req, res) => {
 
         // 2. If registration is closed, notify admins
         if (oldSignup && !oldSignup.event.isRegistrationOpen) {
+            console.log(`[Notification] Closed event modified by ${oldSignup.volunteer.name}. Sending alerts...`);
+
             const admins = await prisma.user.findMany({
-                where: { role: { in: ['core_admin', 'admin'] } }
+                where: {
+                    role: { in: ['core_admin', 'admin'] },
+                    isApproved: true,
+                    AND: [
+                        { email: { not: null } },
+                        { email: { not: 'admin' } }
+                    ]
+                }
             });
 
-            const subject = `【報名異動通知】${oldSignup.volunteer.name} 修改了已關閉報名的活動`;
-            const html = `
-                <h3>報名異動提醒 (活動已關閉報名)</h3>
-                <p>義工 <strong>${oldSignup.volunteer.name}</strong> 修改了活動 <strong>${oldSignup.event.title}</strong> 的報名內容。</p>
-                <hr/>
-                <p><strong>異動詳情：</strong></p>
-                <p>請至後台查看最新報名資訊。</p>
-            `;
+            if (admins.length > 0) {
+                const subject = `【報名異動通知】${oldSignup.volunteer.name} 修改了已關閉報名的活動`;
+                const html = `
+                    <div style="font-family: sans-serif; line-height: 1.6;">
+                        <h3 style="color: #d9534f;">報名異動提醒 (活動已關閉報名)</h3>
+                        <p>義工 <strong>${oldSignup.volunteer.name}</strong> 剛剛修改了活動 <strong>${oldSignup.event.title}</strong> 的報名內容。</p>
+                        <p>由於該活動目前處於「<strong>報名截止</strong>」狀態，系統特此通知管理員進行核對，以確保行政作業（如餐食、接駁）不受影響。</p>
+                        <hr/>
+                        <p><strong>活動名稱：</strong>${oldSignup.event.title}</p>
+                        <p><strong>義工姓名：</strong>${oldSignup.volunteer.name}</p>
+                        <p><strong>通知時間：</strong>${new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}</p>
+                        <br/>
+                        <p>請登入管理後台查看最新報名資訊。</p>
+                    </div>
+                `;
 
-            for (const admin of admins) {
-                if (admin.email) {
-                    await sendEmail(admin.email, subject, html);
-                }
+                // Send asynchronously
+                (async () => {
+                    for (const admin of admins) {
+                        try {
+                            await sendEmail(admin.email!, subject, html);
+                        } catch (err) {
+                            console.error(`Failed to send alert to ${admin.email}:`, err);
+                        }
+                    }
+                })();
+            } else {
+                console.log("[Notification] No admins with valid emails found to notify.");
             }
         }
 
