@@ -254,39 +254,6 @@ app.post('/api/signups', async (req, res) => {
             include: { volunteer: true, event: true }
         });
 
-        // --- EMAIL NOTIFICATION (ASYNCHRONOUS) ---
-        if (signup.volunteer.email) {
-            (async () => {
-                try {
-                    const subject = `【報名成功】禱告山祭壇服事系統 - ${signup.event.title}`;
-                    const html = `
-                        <div style="font-size: 18px;">
-                            <h3>親愛的同工 ${signup.volunteer.name}，您好：</h3>
-                            <p>您已成功報名 <strong>${signup.event.title}</strong>。</p>
-                            <p><strong>服事日期：</strong>${signup.event.startDate} ~ ${signup.event.endDate}</p>
-                            <p>願神親自報答您的擺上！</p>
-                            <hr/>
-                            <p><em>(本郵件為系統自動發送)</em></p>
-                        </div>
-                    `;
-                    const result = await sendEmail(signup.volunteer.email, subject, html);
-
-                    await prisma.emailLog.create({
-                        data: {
-                            recipientName: signup.volunteer.name,
-                            recipientEmail: signup.volunteer.email,
-                            subject: subject,
-                            preview: `報名成功：${signup.event.title}`,
-                            sentAt: new Date().toLocaleString(),
-                            status: result.success ? 'success' : 'failed'
-                        }
-                    });
-                } catch (err) {
-                    console.error('[Notification Error] Failed to send/log welcome email:', err);
-                }
-            })();
-        }
-
         res.json(signup);
     } catch (e) {
         console.error(e);
