@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                String   @id @default(uuid())
+  name              String
+  email             String?  @unique
+  password          String?
+  role              String
+  title             String?
+  isApproved        Boolean  @default(false)
+  totalServiceCount Int      @default(0)
+  consecutiveMonths Int      @default(0)
+  phone             String?
+  notes             String?
+  signups           Signup[]
+}
+
+model EventSeries {
+  id     String          @id @default(uuid())
+  name   String
+  color  String
+  events MinistryEvent[]
+}
+
+model MinistryEvent {
+  id                   String      @id @default(uuid())
+  seriesId             String
+  title                String
+  startDate            String
+  endDate              String
+  startTime            String
+  location             String
+  mealsConfig          String
+  isRegistrationOpen   Boolean     @default(true)
+  registrationDeadline String
+  remarks              String?
+  isReportDownloaded   Boolean     @default(false)
+  series               EventSeries @relation(fields: [seriesId], references: [id])
+  signups              Signup[]
+}
+
+model Signup {
+  id                String        @id @default(uuid())
+  eventId           String
+  volunteerId       String
+  attendingDays     String
+  meals             String
+  transportMode     String
+  arrivalLocation   String?
+  arrivalDate       String?
+  arrivalTime       String?
+  departureMode     String?
+  departureLocation String?
+  departureDate     String?
+  departureTime     String?
+  notes             String?
+  submissionDate    String
+  volunteer         User          @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  event             MinistryEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+model AdminTask {
+  id          String  @id @default(uuid())
+  title       String
+  dueDate     String
+  isCompleted Boolean @default(false)
+  isArchived  Boolean @default(false)
+}
+
+model EmailLog {
+  id             String @id @default(uuid())
+  recipientName  String
+  recipientEmail String
+  subject        String
+  preview        String
+  sentAt         String
+  status         String
+}
