@@ -238,29 +238,31 @@ app.post('/api/signups', async (req, res) => {
             include: { volunteer: true, event: true }
         });
 
-        // --- EMAIL NOTIFICATION USING TEMPLATE ---
+        // --- EMAIL NOTIFICATION ---
         if (signup.volunteer.email) {
-            const template = await prisma.emailTemplate.findUnique({ where: { type: 'signup_success' } });
-            if (template) {
-                let subject = template.subject;
-                let html = template.content
-                    .replace('{{eventTitle}}', signup.event.title)
-                    .replace('{{startDate}}', signup.event.startDate)
-                    .replace('{{endDate}}', signup.event.endDate);
+            const subject = `【報名成功】禱告山祭壇服事系統 - ${signup.event.title}`;
+            const html = `
+                <div style="font-size: 18px;">
+                    <h3>親愛的同工 ${signup.volunteer.name}，您好：</h3>
+                    <p>您已成功報名 <strong>${signup.event.title}</strong>。</p>
+                    <p><strong>服事日期：</strong>${signup.event.startDate} ~ ${signup.event.endDate}</p>
+                    <p>願神親自報答您的擺上！</p>
+                    <hr/>
+                    <p><em>(本郵件為系統自動發送)</em></p>
+                </div>
+            `;
+            await sendEmail(signup.volunteer.email, subject, html);
 
-                await sendEmail(signup.volunteer.email, subject, html);
-
-                await prisma.emailLog.create({
-                    data: {
-                        recipientName: signup.volunteer.name,
-                        recipientEmail: signup.volunteer.email,
-                        subject: subject,
-                        preview: html.substring(0, 100).replace(/<[^>]*>?/gm, ''),
-                        sentAt: new Date().toLocaleString(),
-                        status: 'success'
-                    }
-                });
-            }
+            await prisma.emailLog.create({
+                data: {
+                    recipientName: signup.volunteer.name,
+                    recipientEmail: signup.volunteer.email,
+                    subject: subject,
+                    preview: `報名成功：${signup.event.title}`,
+                    sentAt: new Date().toLocaleString(),
+                    status: 'success'
+                }
+            });
         }
 
         res.json(signup);
@@ -270,53 +272,6 @@ app.post('/api/signups', async (req, res) => {
     }
 });
 
-// --- EMAIL TEMPLATES ---
-app.get('/api/email-templates', async (req, res) => {
-    try {
-        const templates = await prisma.emailTemplate.findMany();
-        res.json(templates);
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: '無法取得郵件範本' });
-    }
-});
-
-app.put('/api/email-templates/:id', async (req, res) => {
-    try {
-        const template = await prisma.emailTemplate.update({
-            where: { id: req.params.id },
-            data: req.body
-        });
-        res.json(template);
-    } catch (e) {
-        console.error(e);
-        res.status(400).json({ error: '更新郵件範本失敗' });
-    }
-});
-
-// --- MANUAL EMAIL BROADCAST ---
-app.post('/api/send-email-broadcast', async (req, res) => {
-    const { recipients, subject, content } = req.body;
-    try {
-        for (const r of recipients) {
-            await sendEmail(r.email, subject, content);
-            await prisma.emailLog.create({
-                data: {
-                    recipientName: r.name,
-                    recipientEmail: r.email,
-                    subject: subject,
-                    preview: content.substring(0, 100).replace(/<[^>]*>?/gm, ''),
-                    sentAt: new Date().toLocaleString(),
-                    status: 'success'
-                }
-            });
-        }
-        res.json({ success: true });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: '郵件廣播失敗' });
-    }
-});
 
 app.put('/api/signups/:id', async (req, res) => {
     try {
@@ -544,6 +499,17 @@ const startScheduler = () => {
                     if (admin.email) await sendEmail(admin.email, subject, html);
                 }
             }
+        }
+    });
+
+    // 5. 防止休眠 (Anti-Hibernation)：每 14 分鐘 Ping 自己一次
+    cron.schedule('*/14 * * * *', async () => {
+        try {
+            console.log('Self-ping: Keeping server awake...');
+            const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+            await fetch(url);
+        } catch (e) {
+            console.error('Self-ping failed:', e);
         }
     });
 };

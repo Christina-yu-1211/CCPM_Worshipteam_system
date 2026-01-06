@@ -50,9 +50,4 @@ export const api = {
     updateTask: (id: string, data: Partial<AdminTask>) => fetchJson(`/tasks/${id}`, { method: 'PUT', body: JSON.stringify(data) }) as Promise<AdminTask>,
     deleteTask: (id: string) => fetchJson(`/tasks/${id}`, { method: 'DELETE' }),
 
-    // --- EMAIL MANAGEMENT ---
-    getEmailTemplates: () => fetchJson('/email-templates') as Promise<any[]>,
-    updateEmailTemplate: (id: string, data: any) => fetchJson(`/email-templates/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    sendEmailBroadcast: (data: { recipients: any[], subject: string, content: string }) =>
-        fetchJson('/send-email-broadcast', { method: 'POST', body: JSON.stringify(data) }),
 };
