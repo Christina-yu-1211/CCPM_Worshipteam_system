@@ -301,7 +301,9 @@ app.put('/api/signups/:id', async (req, res) => {
 
         // 2. If registration is closed, notify admins
         if (!oldSignup.event.isRegistrationOpen) {
-            console.log(`[Notification] Closed event modified by ${oldSignup.volunteer.name}. Sending alerts...`);
+            console.log(`[Notification] ⚠️ Closed event modified!`);
+            console.log(`[Notification] Event: ${oldSignup.event.title}`);
+            console.log(`[Notification] Volunteer: ${oldSignup.volunteer.name}`);
 
             const admins = await prisma.user.findMany({
                 where: {
@@ -311,7 +313,7 @@ app.put('/api/signups/:id', async (req, res) => {
                 }
             });
 
-            console.log(`[Notification] Found ${admins.length} potential admins to notify.`);
+            console.log(`[Notification] Found ${admins.length} admins:`, admins.map(a => ({ name: a.name, email: a.email })));
 
             if (admins.length > 0) {
                 // Parse old data
@@ -412,6 +414,8 @@ app.put('/api/signups/:id', async (req, res) => {
                     });
                 }
 
+                console.log(`[Notification] Detected ${changes.length} changes:`, changes);
+
                 // Build change table HTML
                 let changeTableHtml = '';
                 if (changes.length > 0) {
@@ -456,21 +460,29 @@ app.put('/api/signups/:id', async (req, res) => {
                     </div>
                 `;
 
-                // Send asynchronously
-                (async () => {
-                    for (const admin of admins) {
-                        if (admin.email) {
-                            console.log(`[Notification] Sending email to admin: ${admin.email}`);
-                            try {
-                                const result = await sendEmail(admin.email, subject, html);
-                                console.log(`[Notification] Result for ${admin.email}:`, result.success ? 'Success' : 'Failed');
-                            } catch (err) {
-                                console.error(`[Notification] Critical error sending to ${admin.email}:`, err);
+                // Send emails synchronously to ensure they're sent before response
+                console.log(`[Notification] 📧 Starting to send emails...`);
+                for (const admin of admins) {
+                    if (admin.email) {
+                        console.log(`[Notification] Sending to: ${admin.email}`);
+                        try {
+                            const result = await sendEmail(admin.email, subject, html);
+                            if (result.success) {
+                                console.log(`[Notification] ✅ Successfully sent to ${admin.email}`);
+                            } else {
+                                console.error(`[Notification] ❌ Failed to send to ${admin.email}:`, result.error);
                             }
+                        } catch (err) {
+                            console.error(`[Notification] ❌ Exception sending to ${admin.email}:`, err);
                         }
                     }
-                })();
+                }
+                console.log(`[Notification] 📧 Email sending completed.`);
+            } else {
+                console.log(`[Notification] ⚠️ No admins found to notify!`);
             }
+        } else {
+            console.log(`[Notification] ℹ️ Event registration is still open, no notification needed.`);
         }
 
         res.json(signup);

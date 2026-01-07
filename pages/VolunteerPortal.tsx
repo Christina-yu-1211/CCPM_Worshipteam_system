@@ -228,8 +228,11 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
       window.scrollTo(0, 0);
    };
 
-   // Dynamic Stats Calculation
-   const userSignups = signups.filter(s => s.volunteerId === user.id);
+   // Dynamic Stats Calculation - Only count signups for events that still exist (not deleted)
+   const userSignups = signups.filter(s => {
+      const evt = events.find(e => e.id === s.eventId);
+      return s.volunteerId === user.id && evt !== undefined;
+   });
    const totalServiceCount = userSignups.length;
 
    const getConsecutiveMonths = () => {
