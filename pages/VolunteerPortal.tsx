@@ -237,32 +237,33 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
 
    const getConsecutiveMonths = () => {
       if (userSignups.length === 0) return 0;
+
+      const now = new Date();
+      const currentMonthStr = now.toISOString().slice(0, 7);
+
+      // 取得所有報名的月份（只要當月及之前）
       const eventMonths = userSignups.map(s => {
          const evt = events.find(e => e.id === s.eventId);
-         return evt ? evt.startDate.slice(0, 7) : null;
-      }).filter(Boolean).sort().reverse();
+         const monthStr = evt ? evt.startDate.slice(0, 7) : null;
+         // 只計算當月及之前的報名
+         return monthStr && monthStr <= currentMonthStr ? monthStr : null;
+      }).filter(Boolean);
 
       const uniqueMonths = [...new Set(eventMonths)] as string[];
       if (uniqueMonths.length === 0) return 0;
 
+      // 從當前月份開始往回推算連續月數
       let count = 0;
-      const now = new Date();
-      const currentMonthStr = now.toISOString().slice(0, 7);
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().slice(0, 7);
+      let checkMonth = currentMonthStr;
 
-      if (uniqueMonths[0] !== currentMonthStr && uniqueMonths[0] !== lastMonth) {
-         return 0;
+      while (uniqueMonths.includes(checkMonth)) {
+         count++;
+         // 往回推一個月
+         const date = new Date(checkMonth + '-01');
+         date.setMonth(date.getMonth() - 1);
+         checkMonth = date.toISOString().slice(0, 7);
       }
 
-      for (let i = 0; i < uniqueMonths.length; i++) {
-         if (i === 0) { count = 1; continue; }
-         const prev = new Date(uniqueMonths[i - 1]);
-         const curr = new Date(uniqueMonths[i]);
-         prev.setMonth(prev.getMonth() - 1);
-         if (prev.toISOString().slice(0, 7) === curr.toISOString().slice(0, 7)) {
-            count++;
-         } else { break; }
-      }
       return count;
    };
    const consecutiveMonths = getConsecutiveMonths();
