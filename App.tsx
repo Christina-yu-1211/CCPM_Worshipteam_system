@@ -23,6 +23,8 @@ export default function App() {
     return saved ? JSON.parse(saved) : null;
   });
   const [currentView, setCurrentView] = useState<'main' | 'settings'>('main');
+  const [refreshing, setRefreshing] = useState(false);
+  const [touchStartY, setTouchStartY] = useState(0);
 
   const [users, setUsers] = useState<User[]>([]);
   const [events, setEvents] = useState<MinistryEvent[]>([]);
@@ -67,6 +69,35 @@ export default function App() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // 換頁籤時自動刷新
+  useEffect(() => {
+    if (currentUser) {
+      loadData();
+    }
+  }, [currentView]);
+
+  // --- PWA PULL TO REFRESH ---
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartY(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const touchY = e.touches[0].clientY;
+    const pullDistance = touchY - touchStartY;
+
+    // 如果在頁面頂部且向下拉，顯示刷新提示
+    if (window.scrollY === 0 && pullDistance > 100 && !refreshing) {
+      handleRefresh();
+    }
+  };
+
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    await loadData();
+    setTimeout(() => setRefreshing(false), 500); // 短暫延遲讓用戶看到刷新動畫
+  };
 
   // --- ACTIONS ---
 
@@ -541,16 +572,35 @@ export default function App() {
   }
 
   return (
-    <Layout
-      currentUser={{ name: currentUser.name, role: currentUser.role }}
-      onSwitchUser={handleLogout}
-      activeView={currentView}
-      onNavigate={setCurrentView}
+    <div
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      className="h-full"
     >
-      {/* Badge Popup */}
-      {showBadge && <BadgeModal count={showBadge.count} streak={showBadge.streak} onClose={() => setShowBadge(null)} />}
+      {/* Pull-to-refresh indicator */}
+      {refreshing && (
+        <div className="fixed top-0 left-0 right-0 bg-mint-500 text-white text-center py-2 z-50 animate-fade-in">
+          <div className="flex items-center justify-center gap-2">
+            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            刷新中...
+          </div>
+        </div>
+      )}
 
-      {PageContent}
-    </Layout>
+      <Layout
+        currentUser={{ name: currentUser.name, role: currentUser.role }}
+        onSwitchUser={handleLogout}
+        activeView={currentView}
+        onNavigate={setCurrentView}
+      >
+        {/* Badge Popup */}
+        {showBadge && <BadgeModal count={showBadge.count} streak={showBadge.streak} onClose={() => setShowBadge(null)} />}
+
+        {PageContent}
+      </Layout>
+    </div>
   );
 }
