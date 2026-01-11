@@ -5,14 +5,22 @@ dotenv.config();
 
 // Create reusable transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport({
-    service: 'gmail',          // Use standard Gmail service shorthand
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // STARTTLS
     auth: {
         user: process.env.EMAIL_USER?.trim(),
         pass: process.env.EMAIL_APP_PASSWORD?.trim().replace(/ /g, ''),
     },
-    connectionTimeout: 60000,  // Keep timeout as safety
+    tls: {
+        rejectUnauthorized: false // Optional: help if cerficates issues (Render sometimes needs this)
+    },
+    connectionTimeout: 60000,
     socketTimeout: 60000,
-});
+    logger: true, // Log to console
+    debug: true,  // Include SMTP traffic in logs
+    family: 4     // Force IPv4 to avoid Render IPv6 timeouts
+} as nodemailer.TransportOptions);
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
     try {

@@ -171,13 +171,27 @@ app.post('/api/events', async (req, res) => {
         `;
 
         // Send asynchronously to avoid blocking the response too long
-        // Ideally use a queue, but loop is fine for small scale
+        console.log(`[Notification] 📧 Preparing to send new event notifications to ${volunteers.length} volunteers...`);
         (async () => {
+            let successCount = 0;
+            let failCount = 0;
             for (const volunteer of volunteers) {
                 if (volunteer.email) {
-                    await sendEmail(volunteer.email, subject, html);
+                    try {
+                        console.log(`[Notification] Sending to: ${volunteer.email}`);
+                        const result = await sendEmail(volunteer.email, subject, html);
+                        if (result.success) successCount++;
+                        else {
+                            console.error(`[Notification] ❌ Failed to send to ${volunteer.email}:`, result.error);
+                            failCount++;
+                        }
+                    } catch (err) {
+                        console.error(`[Notification] ❌ Exception sending to ${volunteer.email}:`, err);
+                        failCount++;
+                    }
                 }
             }
+            console.log(`[Notification] 📧 Finished sending. Success: ${successCount}, Failed: ${failCount}`);
         })();
 
         res.json(event);
