@@ -49,7 +49,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
    const selectedEvent = events.find(e => e.id === selectedEventId);
    const existingSignup = signups.find(s => s.eventId === selectedEventId && s.volunteerId === user.id);
 
-   // Filter Active Events Only for Portal & SORT BY START DATE
+   // Filter Active Events Only for Portal & SORT BY START DATE (Ascending)
    const activeEvents = events
       .filter(e => !isEventPast(e.endDate))
       .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());

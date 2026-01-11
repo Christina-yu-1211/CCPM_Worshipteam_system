@@ -124,7 +124,10 @@ app.delete('/api/series/:id', async (req, res) => {
 // --- EVENTS ---
 app.get('/api/events', async (req, res) => {
     try {
-        const events = await prisma.ministryEvent.findMany({ include: { series: true } });
+        const events = await prisma.ministryEvent.findMany({
+            include: { series: true },
+            orderBy: { startDate: 'asc' }
+        });
         const parsed = events.map(e => ({
             ...e,
             mealsConfig: JSON.parse(e.mealsConfig as string || '[]')

@@ -90,8 +90,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const volunteerMap = Object.fromEntries(users.map(u => [u.id, u]));
 
   // Derived Event Lists
-  const activeEvents = events.filter(e => !isEventPast(e.endDate));
-  const archivedEvents = events.filter(e => isEventPast(e.endDate));
+  const activeEvents = events
+    .filter(e => !isEventPast(e.endDate))
+    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()); // Ascending (Closest first)
+
+  const archivedEvents = events
+    .filter(e => isEventPast(e.endDate))
+    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()); // Descending (Newest first)
+
   const displayedEvents = activeTab === 'overview' ? activeEvents : (showArchivedEvents ? archivedEvents : activeEvents);
 
   const toggleEventExpand = (id: string) => {
