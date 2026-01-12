@@ -16,7 +16,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentUser, onSwitchU
       <nav className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <img
-            src="https://duk.tw/s6FP48.png"
+            src="https://duk.tw/xiX7yK.png"
             alt="Logo"
             className="w-10 h-10 object-contain"
           />

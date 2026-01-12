@@ -447,7 +447,7 @@ export default function App() {
       <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 font-sans tracking-wider leading-loose">
         <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-lg w-full">
           <div className="text-center mb-10">
-            <img src="https://duk.tw/s6FP48.png" alt="Logo" className="w-24 h-24 mx-auto mb-4 object-contain" />
+            <img src="https://duk.tw/xiX7yK.png" alt="Logo" className="w-24 h-24 mx-auto mb-4 object-contain" />
             <h1 className="text-3xl font-bold text-gray-800 tracking-widest">
               禱告山祭壇<br className="sm:hidden" />服事系統
             </h1>
