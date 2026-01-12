@@ -211,16 +211,23 @@ export default function App() {
         // Replace temp signup
         setSignups(prev => prev.map(s => s.id === tempId ? created : s));
 
-        // Update User Stats Optimistically
+        // Update User Stats Optimistically with RECALCULATION
         if (currentUser) {
-          const updatedUser = { ...currentUser, totalServiceCount: currentUser.totalServiceCount + 1 };
+          // Calculate count logic: All signups for this user where the event still exists
+          // We include the newSignup here manually because 'signups' state in this closure doesn't have it yet
+          const allUserSignups = [...signups, newSignup].filter(s => s.volunteerId === currentUser.id);
+          const validSignups = allUserSignups.filter(s => events.some(e => e.id === s.eventId));
+          const newTotalCount = validSignups.length;
+
+          const updatedUser = { ...currentUser, totalServiceCount: newTotalCount };
           setCurrentUser(updatedUser);
           setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
 
-          await api.updateUser(currentUser.id, { totalServiceCount: updatedUser.totalServiceCount });
+          await api.updateUser(currentUser.id, { totalServiceCount: newTotalCount });
 
-          if ([3, 5, 7, 10, 15, 20].includes(updatedUser.totalServiceCount)) {
-            setShowBadge({ count: updatedUser.totalServiceCount, streak: updatedUser.consecutiveMonths });
+          // Trigger Badge based on the ACCURATE count
+          if ([3, 5, 7, 10, 15, 20].includes(newTotalCount)) {
+            setShowBadge({ count: newTotalCount, streak: updatedUser.consecutiveMonths });
           }
         }
       }
