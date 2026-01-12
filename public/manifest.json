@@ -4,7 +4,7 @@
     "start_url": "/",
     "display": "standalone",
     "background_color": "#f8fafc",
-    "theme_color": "#E11D48",
+    "theme_color": "#bb5e17",
     "icons": [
         {
             "src": "https://duk.tw/5LeoQu.png",
