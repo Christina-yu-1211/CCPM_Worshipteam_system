@@ -295,10 +295,22 @@ export const FUNNY_QUOTES = [
 export const getRandomQuote = () => FUNNY_QUOTES[Math.floor(Math.random() * FUNNY_QUOTES.length)];
 
 export const getBadgeDetails = (count: number, streak: number) => {
-  if (streak === 2) return { title: "連續2個月", quote: "你的穩定度，連聖靈都感動！", icon: "🔥" };
-  if (streak >= 3) return { title: "穩定長青", quote: "你是造橋車站最熟悉的風景。", icon: "🏔️" };
-  if (count === 3) return { title: "新手上路", quote: "事不過三，服事要『三』！", icon: "🥉" };
-  if (count === 5) return { title: "擊掌慶祝", quote: "『五』告厲害！神看你的服事為美！", icon: "🖐️" };
-  if (count >= 10) return { title: "十全十美", quote: "你是上帝派來造橋的超級英雄！", icon: "🦸" };
+  if (streak === 2) return { type: 'streak', title: "連續2個月", quote: "你的穩定度，連聖靈都感動！", icon: "🔥" };
+  if (streak === 3) return { type: 'streak', title: "三股合成", quote: "三股合成的繩子不容易折斷，你的服事也是！", icon: "🔗" };
+  if (streak === 4) return { type: 'streak', title: "四季守候", quote: "無論季節變換，你的愛心始終如一。", icon: "🌲" };
+  if (streak === 5) return { type: 'streak', title: "五餅二魚", quote: "獻上你有的，神必倍增使用。", icon: "🥖" };
+  if (streak === 6) return { type: 'streak', title: "半年里程", quote: "默默耕耘了半年，天父都看在眼裡！", icon: "🌱" };
+  if (streak === 7) return { type: 'streak', title: "屬天完全", quote: "七個月的堅持，願神的完全充滿你。", icon: "🌈" };
+  if (streak === 8) return { type: 'streak', title: "福杯滿溢", quote: "你的生命因著服事，福杯滿溢流出來。", icon: "🍷" };
+  if (streak === 9) return { type: 'streak', title: "聖靈結實", quote: "你的生命正結出美好的聖靈果子。", icon: "🍇" };
+  if (streak === 10) return { type: 'streak', title: "堅定不移", quote: "十個月的風雨無阻，你是可靠的戰士！", icon: "🛡️" };
+  if (streak === 11) return { type: 'streak', title: "信心飛躍", quote: "下個月就滿一年了！你的信心正在飛躍。", icon: "🦅" };
+  if (streak >= 12) return { type: 'streak', title: "週年榮耀", quote: "整整一年的委身，這是極重無比的榮耀！", icon: "👑" };
+  if (count === 3) return { type: 'count', title: "新手上路", quote: "事不過三，服事要『三』！", icon: "🥉" };
+  if (count === 5) return { type: 'count', title: "擊掌慶祝", quote: "『五』告厲害！神看你的服事為美！", icon: "🖐️" };
+  if (count === 7) return { type: 'count', title: "完全恩典", quote: "七是完全數，願神的恩典充滿你！", icon: "🌈" };
+  if (count === 10) return { type: 'count', title: "十全十美", quote: "你是上帝派來造橋的超級英雄！", icon: "🦸" };
+  if (count === 15) return { type: 'count', title: "忠心僕人", quote: "你的擺上，讓禱告山的燈火更亮了！", icon: "🕯️" };
+  if (count >= 20) return { type: 'count', title: "榮耀冠冕", quote: "這份堅持，是獻給神最美的禮物。", icon: "👑" };
   return null;
 };
