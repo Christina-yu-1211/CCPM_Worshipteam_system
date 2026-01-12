@@ -696,7 +696,10 @@ const startScheduler = () => {
 
         const overdueTasks = await prisma.adminTask.findMany({
             where: {
-                dueDate: { lt: todayStr },
+                dueDate: {
+                    lt: todayStr,
+                    not: ''
+                },
                 isCompleted: false
             }
         });
