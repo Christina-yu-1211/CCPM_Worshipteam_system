@@ -177,8 +177,8 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
          s.eventId === selectedEventId &&
          s.volunteerId !== user.id && // Don't count self if editing
          (isDeparture
-            ? (s.departureMode === 'shuttle' && s.departureLocation === loc && s.departureDate === date && s.departureTime)
-            : (s.transportMode === 'shuttle' && s.arrivalLocation === loc && s.arrivalDate === date && s.arrivalTime))
+            ? (s.departureMode === 'shuttle' && s.departureLocation === loc && s.departureDate?.endsWith(date.split('-').slice(-2).join('-')) && s.departureTime)
+            : (s.transportMode === 'shuttle' && s.arrivalLocation === loc && s.arrivalDate?.endsWith(date.split('-').slice(-2).join('-')) && s.arrivalTime))
       );
 
       // Group by time -> [names]
@@ -523,7 +523,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                                  </div>
                               </div>
                            )}
-                           {showArrivalConflict && <div className="text-sm font-bold text-blue-600 flex gap-2 bg-white p-3 rounded-xl shadow-sm"><AlertCircle size={20} /> 此日期已有其他同工登記，建議併車</div>}
+                           {showArrivalConflict && <div className="text-sm font-bold text-red-600 flex gap-2 bg-white p-3 rounded-xl shadow-md border-2 border-red-100 animate-pulse"><AlertCircle size={20} /> 此日期已有其他同工登記，建議併車</div>}
                         </div>
                      )}
                   </section>
@@ -579,7 +579,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                                  </div>
                               </div>
                            )}
-                           {showDepartureConflict && <div className="text-sm font-bold text-orange-600 flex gap-2 bg-white p-3 rounded-xl shadow-sm"><AlertCircle size={20} /> 此日期已有其他同工登記，建議併車</div>}
+                           {showDepartureConflict && <div className="text-sm font-bold text-red-600 flex gap-2 bg-white p-3 rounded-xl shadow-md border-2 border-red-100 animate-pulse"><AlertCircle size={20} /> 此日期已有其他同工登記，建議併車</div>}
                         </div>
                      )}
                   </section>
