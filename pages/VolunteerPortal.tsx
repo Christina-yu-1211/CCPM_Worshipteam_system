@@ -177,8 +177,8 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
          s.eventId === selectedEventId &&
          s.volunteerId !== user.id && // Don't count self if editing
          (isDeparture
-            ? (s.departureMode === 'shuttle' && s.departureLocation === loc && s.departureDate?.endsWith(date.split('-').slice(-2).join('-')) && s.departureTime)
-            : (s.transportMode === 'shuttle' && s.arrivalLocation === loc && s.arrivalDate?.endsWith(date.split('-').slice(-2).join('-')) && s.arrivalTime))
+            ? (s.departureMode === 'shuttle' && s.departureLocation === loc && s.departureDate === date && s.departureTime)
+            : (s.transportMode === 'shuttle' && s.arrivalLocation === loc && s.arrivalDate === date && s.arrivalTime))
       );
 
       // Group by time -> [names]

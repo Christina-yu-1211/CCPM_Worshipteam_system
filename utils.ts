@@ -102,17 +102,15 @@ export const calculateShuttleGroups = (signups: Signup[], volunteerMap: Record<s
     .filter(s => s.transportMode === 'shuttle' && s.arrivalTime && s.arrivalLocation) // Removed strict arrivalDate check
     .map(s => ({ ...s, arrivalDate: s.arrivalDate || defaultDates?.arrival || '未知日期' })) // Fallback
     .sort((a, b) => {
-      const d1 = a.arrivalDate!.split('-').slice(-2).join('-'); // MM-DD
-      const d2 = b.arrivalDate!.split('-').slice(-2).join('-');
-      if (d1 !== d2) return d1.localeCompare(d2);
+      if (a.arrivalDate !== b.arrivalDate) return a.arrivalDate!.localeCompare(b.arrivalDate!);
       return timeToMinutes(a.arrivalTime!) - timeToMinutes(b.arrivalTime!);
     });
 
   // Group by Date, then Location
-  const arrivalDates = Array.from(new Set(arrivalUsers.map(u => u.arrivalDate!.split('-').slice(-2).join('-')))).sort();
-  arrivalDates.forEach(dateShort => {
+  const arrivalDates = Array.from(new Set(arrivalUsers.map(u => u.arrivalDate!))).sort();
+  arrivalDates.forEach(date => {
     locations.forEach(loc => {
-      const locUsers = arrivalUsers.filter(s => s.arrivalDate!.endsWith(dateShort) && s.arrivalLocation === loc);
+      const locUsers = arrivalUsers.filter(s => s.arrivalDate === date && s.arrivalLocation === loc);
       let currentGroup: any[] = [];
 
       locUsers.forEach((user) => {
@@ -124,13 +122,13 @@ export const calculateShuttleGroups = (signups: Signup[], volunteerMap: Record<s
           if (userTime - firstInGroupTime <= 30) {
             currentGroup.push(user);
           } else {
-            pushGroup(groups, currentGroup, volunteerMap, loc, 'arrival', dateShort);
+            pushGroup(groups, currentGroup, volunteerMap, loc, 'arrival', date);
             currentGroup = [user];
           }
         }
       });
       if (currentGroup.length > 0) {
-        pushGroup(groups, currentGroup, volunteerMap, loc, 'arrival', dateShort);
+        pushGroup(groups, currentGroup, volunteerMap, loc, 'arrival', date);
       }
     });
   });
@@ -140,16 +138,14 @@ export const calculateShuttleGroups = (signups: Signup[], volunteerMap: Record<s
     .filter(s => s.departureMode === 'shuttle' && s.departureTime && s.departureLocation) // Removed strict departureDate check
     .map(s => ({ ...s, departureDate: s.departureDate || defaultDates?.departure || '未知日期' })) // Fallback
     .sort((a, b) => {
-      const d1 = a.departureDate!.split('-').slice(-2).join('-'); // MM-DD
-      const d2 = b.departureDate!.split('-').slice(-2).join('-');
-      if (d1 !== d2) return d1.localeCompare(d2);
+      if (a.departureDate !== b.departureDate) return a.departureDate!.localeCompare(b.departureDate!);
       return timeToMinutes(a.departureTime!) - timeToMinutes(b.departureTime!);
     });
 
-  const departureDates = Array.from(new Set(departureUsers.map(u => u.departureDate!.split('-').slice(-2).join('-')))).sort();
-  departureDates.forEach(dateShort => {
+  const departureDates = Array.from(new Set(departureUsers.map(u => u.departureDate!))).sort();
+  departureDates.forEach(date => {
     locations.forEach(loc => {
-      const locUsers = departureUsers.filter(s => s.departureDate!.endsWith(dateShort) && s.departureLocation === loc);
+      const locUsers = departureUsers.filter(s => s.departureDate === date && s.departureLocation === loc);
       let currentGroup: any[] = [];
 
       locUsers.forEach((user) => {
@@ -161,13 +157,13 @@ export const calculateShuttleGroups = (signups: Signup[], volunteerMap: Record<s
           if (userTime - firstInGroupTime <= 30) {
             currentGroup.push(user);
           } else {
-            pushGroup(groups, currentGroup, volunteerMap, loc, 'departure', dateShort);
+            pushGroup(groups, currentGroup, volunteerMap, loc, 'departure', date);
             currentGroup = [user];
           }
         }
       });
       if (currentGroup.length > 0) {
-        pushGroup(groups, currentGroup, volunteerMap, loc, 'departure', dateShort);
+        pushGroup(groups, currentGroup, volunteerMap, loc, 'departure', date);
       }
     });
   });
@@ -285,9 +281,6 @@ export const getSmartShuttleAlert = (userTime: string, otherSignups: Signup[], i
     const sDate = isDeparture ? s.departureDate : s.arrivalDate;
     if (time && sDate) {
       const otherMinutes = timeToMinutes(time);
-      // More robust date matching (ends with MM-DD)
-      const userDateShort = otherSignups[0]?.arrivalDate?.split('-').slice(-2).join('-') || ''; // Just a fallback, better to pass userDate
-      // Actually we already filtered by date in the component, but let's be double sure or lenient
       if (Math.abs(userMinutes - otherMinutes) <= 12 * 60) {
         count++;
       }
