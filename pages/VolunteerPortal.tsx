@@ -10,10 +10,11 @@ interface VolunteerPortalProps {
    series: EventSeries[];
    signups: Signup[];
    onSignup: (data: Partial<Signup>) => void;
+   onDeleteSignup: (id: string) => void;
    onUpdateUser: (data: Partial<User>) => void;
 }
 
-export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, events, series, signups, onSignup, onUpdateUser }) => {
+export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, events, series, signups, onSignup, onDeleteSignup, onUpdateUser }) => {
    const [selectedEventId, setSelectedEventId] = useState<string>('');
 
    // Modals for Stats
@@ -42,7 +43,8 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
       notes: ''
    });
 
-   const [showShuttleConflict, setShowShuttleConflict] = useState(false);
+   const [showArrivalConflict, setShowArrivalConflict] = useState(false);
+   const [showDepartureConflict, setShowDepartureConflict] = useState(false);
    const [isEditing, setIsEditing] = useState(false);
    const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -139,10 +141,30 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
          );
 
          const conflictCount = getSmartShuttleAlert(time, relevantSignups, isDeparture);
-         if (conflictCount > 0) setShowShuttleConflict(true);
-         else setShowShuttleConflict(false);
+         if (isDeparture) setShowDepartureConflict(conflictCount > 0);
+         else setShowArrivalConflict(conflictCount > 0);
       } else {
-         setShowShuttleConflict(false);
+         if (isDeparture) setShowDepartureConflict(false);
+         else setShowArrivalConflict(false);
+      }
+   };
+
+   // Auto-trigger conflict check
+   useEffect(() => {
+      if (formData.transportMode === 'shuttle') checkShuttleConflict(false);
+      if (formData.departureMode === 'shuttle') checkShuttleConflict(true);
+   }, [
+      formData.transportMode, formData.arrivalTime, formData.arrivalLocation, formData.arrivalDate,
+      formData.departureMode, formData.departureTime, formData.departureLocation, formData.departureDate,
+      selectedEventId, signups
+   ]);
+
+   const handleCancelSignup = () => {
+      if (!existingSignup) return;
+      if (confirm('確定要取消此聚會的報名嗎？')) {
+         onDeleteSignup(existingSignup.id);
+         setSelectedEventId('');
+         setIsEditing(false);
       }
    };
 
@@ -501,7 +523,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                                  </div>
                               </div>
                            )}
-                           {showShuttleConflict && <div className="text-sm font-bold text-blue-600 flex gap-2 bg-white p-3 rounded-xl shadow-sm"><AlertCircle size={20} /> 此時段已有人登記，建議併車</div>}
+                           {showArrivalConflict && <div className="text-sm font-bold text-blue-600 flex gap-2 bg-white p-3 rounded-xl shadow-sm"><AlertCircle size={20} /> 此日期已有其他同工登記，建議併車</div>}
                         </div>
                      )}
                   </section>
@@ -557,6 +579,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                                  </div>
                               </div>
                            )}
+                           {showDepartureConflict && <div className="text-sm font-bold text-orange-600 flex gap-2 bg-white p-3 rounded-xl shadow-sm"><AlertCircle size={20} /> 此日期已有其他同工登記，建議併車</div>}
                         </div>
                      )}
                   </section>
@@ -635,6 +658,15 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                      >
                         {isEditing ? '更新報名' : '確認報名'}
                      </button>
+                     {isEditing && (
+                        <button
+                           type="button"
+                           onClick={handleCancelSignup}
+                           className="w-full py-4 text-red-500 font-bold hover:bg-red-50 rounded-2xl transition"
+                        >
+                           取消（刪除）整份報名
+                        </button>
+                     )}
                   </div>
                </form>
             )}

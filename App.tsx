@@ -239,6 +239,19 @@ export default function App() {
     }
   };
 
+  const handleDeleteSignup = async (id: string) => {
+    const oldSignups = [...signups];
+    setSignups(prev => prev.filter(s => s.id !== id));
+    try {
+      await api.deleteSignup(id);
+      loadData();
+    } catch (err) {
+      setSignups(oldSignups);
+      alert('取消報名失敗: ' + err);
+    }
+  };
+
+
   const handleSeriesAction = async (action: 'add' | 'edit' | 'delete', data: any) => {
     const oldSeries = [...series];
     try {
@@ -550,6 +563,7 @@ export default function App() {
           series={series}
           signups={signups}
           onSignup={handleSignup}
+          onDeleteSignup={handleDeleteSignup}
           onUpdateUser={(data) => handleAdminActions.updateUser({ ...data, id: currentUser.id })}
         />
       );

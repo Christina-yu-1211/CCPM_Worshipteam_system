@@ -43,6 +43,7 @@ export const api = {
     getSignups: () => fetchJson('/signups') as Promise<Signup[]>,
     createSignup: (data: Partial<Signup>) => fetchJson('/signups', { method: 'POST', body: JSON.stringify(data) }) as Promise<Signup>,
     updateSignup: (id: string, data: Partial<Signup>) => fetchJson(`/signups/${id}`, { method: 'PUT', body: JSON.stringify(data) }) as Promise<Signup>,
+    deleteSignup: (id: string) => fetchJson(`/signups/${id}`, { method: 'DELETE' }),
 
     // --- TASKS ---
     getTasks: () => fetchJson('/tasks') as Promise<AdminTask[]>,

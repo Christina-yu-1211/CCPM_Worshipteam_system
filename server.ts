@@ -277,7 +277,15 @@ app.post('/api/signups', async (req, res) => {
         res.status(400).json({ error: '報名失敗' });
     }
 });
-
+app.delete('/api/signups/:id', async (req, res) => {
+    try {
+        await prisma.signup.delete({ where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(400).json({ error: '刪除報名失敗' });
+    }
+});
 
 app.put('/api/signups/:id', async (req, res) => {
     try {
