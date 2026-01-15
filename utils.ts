@@ -93,24 +93,25 @@ export const isDateInRange = (dateStr: string, startStr: string, endStr: string)
 };
 
 // Generate Shuttle Groups for display
-export const calculateShuttleGroups = (signups: Signup[], volunteerMap: Record<string, User>): ShuttleGroup[] => {
+export const calculateShuttleGroups = (signups: Signup[], volunteerMap: Record<string, User>, defaultDates?: { arrival: string, departure: string }): ShuttleGroup[] => {
   const groups: ShuttleGroup[] = [];
   const locations = ['Zaoqiao', 'Zhunan', 'HSR_Miaoli'];
 
   // 1. ARRIVAL LOGIC
   const arrivalUsers = signups
-    .filter(s => s.transportMode === 'shuttle' && s.arrivalTime && s.arrivalLocation && s.arrivalDate)
+    .filter(s => s.transportMode === 'shuttle' && s.arrivalTime && s.arrivalLocation) // Removed strict arrivalDate check
+    .map(s => ({ ...s, arrivalDate: s.arrivalDate || defaultDates?.arrival || '未知日期' })) // Fallback
     .sort((a, b) => {
-      if (a.arrivalDate! !== b.arrivalDate!) return a.arrivalDate!.localeCompare(b.arrivalDate!);
+      if (a.arrivalDate !== b.arrivalDate) return a.arrivalDate.localeCompare(b.arrivalDate);
       return timeToMinutes(a.arrivalTime!) - timeToMinutes(b.arrivalTime!);
     });
 
   // Group by Date, then Location
-  const arrivalDates = Array.from(new Set(arrivalUsers.map(u => u.arrivalDate!))).sort();
+  const arrivalDates = Array.from(new Set(arrivalUsers.map(u => u.arrivalDate))).sort();
   arrivalDates.forEach(date => {
     locations.forEach(loc => {
       const locUsers = arrivalUsers.filter(s => s.arrivalDate === date && s.arrivalLocation === loc);
-      let currentGroup: Signup[] = [];
+      let currentGroup: any[] = []; // Using any to accommodate the mapped object
 
       locUsers.forEach((user) => {
         if (currentGroup.length === 0) {
@@ -134,17 +135,18 @@ export const calculateShuttleGroups = (signups: Signup[], volunteerMap: Record<s
 
   // 2. DEPARTURE LOGIC
   const departureUsers = signups
-    .filter(s => s.departureMode === 'shuttle' && s.departureTime && s.departureLocation && s.departureDate)
+    .filter(s => s.departureMode === 'shuttle' && s.departureTime && s.departureLocation) // Removed strict departureDate check
+    .map(s => ({ ...s, departureDate: s.departureDate || defaultDates?.departure || '未知日期' })) // Fallback
     .sort((a, b) => {
-      if (a.departureDate! !== b.departureDate!) return a.departureDate!.localeCompare(b.departureDate!);
+      if (a.departureDate !== b.departureDate) return a.departureDate.localeCompare(b.departureDate);
       return timeToMinutes(a.departureTime!) - timeToMinutes(b.departureTime!);
     });
 
-  const departureDates = Array.from(new Set(departureUsers.map(u => u.departureDate!))).sort();
+  const departureDates = Array.from(new Set(departureUsers.map(u => u.departureDate))).sort();
   departureDates.forEach(date => {
     locations.forEach(loc => {
       const locUsers = departureUsers.filter(s => s.departureDate === date && s.departureLocation === loc);
-      let currentGroup: Signup[] = [];
+      let currentGroup: any[] = [];
 
       locUsers.forEach((user) => {
         if (currentGroup.length === 0) {
@@ -221,8 +223,8 @@ const pushGroup = (groups: ShuttleGroup[], users: Signup[], map: Record<string, 
   });
 };
 
-export const generateDriverListText = (signups: Signup[], users: Record<string, User>, driverAssignments: Record<string, string>): string => {
-  const groups = calculateShuttleGroups(signups, users);
+export const generateDriverListText = (signups: Signup[], users: Record<string, User>, driverAssignments: Record<string, string>, defaultDates?: { arrival: string, departure: string }): string => {
+  const groups = calculateShuttleGroups(signups, users, defaultDates);
   let text = "🚐 **禱告山接駁派車單** 🚐\n\n";
 
   if (groups.length === 0) return text + "目前無接駁需求";

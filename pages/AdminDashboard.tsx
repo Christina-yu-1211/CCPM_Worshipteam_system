@@ -262,8 +262,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     link.click();
   };
 
-  const handleCopyDriverList = (eventSignups: Signup[]) => {
-    const text = generateDriverListText(eventSignups, volunteerMap, driverAssignments);
+  const handleCopyDriverList = (evt: MinistryEvent, eventSignups: Signup[]) => {
+    const text = generateDriverListText(eventSignups, volunteerMap, driverAssignments, { arrival: evt.startDate, departure: evt.endDate });
     navigator.clipboard.writeText(text).then(() => alert('已複製到剪貼簿！'));
   };
 
@@ -361,7 +361,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             const evtSignups = signups.filter(s => s.eventId === evt.id);
             const isExpanded = expandedEventIds.includes(evt.id);
             const s = series.find(ser => ser.id === evt.seriesId);
-            const shuttleGroups = calculateShuttleGroups(evtSignups, volunteerMap);
+            const shuttleGroups = calculateShuttleGroups(evtSignups, volunteerMap, { arrival: evt.startDate, departure: evt.endDate });
             const uniqueDays = Array.from(new Set(evtSignups.flatMap(signup => signup.attendingDays))).sort();
 
             return (
@@ -477,7 +477,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <h3 className="text-xl font-extrabold text-gray-700 flex items-center gap-3">
                           <Bus size={24} className="text-mint-600" /> 接駁統計
                         </h3>
-                        <button onClick={() => handleCopyDriverList(evtSignups)} className="text-sm bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 font-bold tracking-wide shadow-md shadow-green-200 flex items-center gap-2 transition">
+                        <button onClick={() => handleCopyDriverList(evt, evtSignups)} className="text-sm bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 font-bold tracking-wide shadow-md shadow-green-200 flex items-center gap-2 transition">
                           <FileText size={16} /> 複製給司機
                         </button>
                       </div>
