@@ -280,7 +280,7 @@ export const getSmartShuttleAlert = (userTime: string, otherSignups: Signup[], i
     const time = isDeparture ? s.departureTime : s.arrivalTime;
     if (time) {
       const otherMinutes = timeToMinutes(time);
-      if (Math.abs(userMinutes - otherMinutes) <= 30) {
+      if (Math.abs(userMinutes - otherMinutes) <= 12 * 60) {
         count++;
       }
     }
