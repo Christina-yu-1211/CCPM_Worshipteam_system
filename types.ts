@@ -50,21 +50,21 @@ export interface Signup {
   volunteerId: string;
   attendingDays: string[]; // Array of YYYY-MM-DD
   meals: { date: string; type: 'breakfast' | 'lunch' | 'dinner' }[];
-  
+
   // Transport
   transportMode: 'shuttle' | 'self'; // Removed public
-  
+
   // Arrival (Go)
   arrivalLocation?: 'Zaoqiao' | 'Zhunan' | 'HSR_Miaoli';
   arrivalDate?: string;
   arrivalTime?: string;
-  
+
   // Departure (Return)
   departureMode?: 'shuttle' | 'self';
-  departureLocation?: 'Zaoqiao' | 'Zhunan' | 'HSR_Miaoli'; 
+  departureLocation?: 'Zaoqiao' | 'Zhunan' | 'HSR_Miaoli';
   departureDate?: string;
   departureTime?: string;
-  
+
   notes?: string;
   submissionDate: string; // For sorting
 }
@@ -72,6 +72,7 @@ export interface Signup {
 export interface ShuttleGroup {
   id: string; // Unique ID for keying driver selection
   type: 'arrival' | 'departure';
+  date: string;
   location: string;
   windowStart: string;
   windowEnd: string;

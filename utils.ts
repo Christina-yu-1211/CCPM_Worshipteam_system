@@ -99,65 +99,77 @@ export const calculateShuttleGroups = (signups: Signup[], volunteerMap: Record<s
 
   // 1. ARRIVAL LOGIC
   const arrivalUsers = signups
-    .filter(s => s.transportMode === 'shuttle' && s.arrivalTime && s.arrivalLocation)
-    .sort((a, b) => timeToMinutes(a.arrivalTime!) - timeToMinutes(b.arrivalTime!));
+    .filter(s => s.transportMode === 'shuttle' && s.arrivalTime && s.arrivalLocation && s.arrivalDate)
+    .sort((a, b) => {
+      if (a.arrivalDate! !== b.arrivalDate!) return a.arrivalDate!.localeCompare(b.arrivalDate!);
+      return timeToMinutes(a.arrivalTime!) - timeToMinutes(b.arrivalTime!);
+    });
 
-  locations.forEach(loc => {
-    const locUsers = arrivalUsers.filter(s => s.arrivalLocation === loc);
-    let currentGroup: Signup[] = [];
+  // Group by Date, then Location
+  const arrivalDates = Array.from(new Set(arrivalUsers.map(u => u.arrivalDate!))).sort();
+  arrivalDates.forEach(date => {
+    locations.forEach(loc => {
+      const locUsers = arrivalUsers.filter(s => s.arrivalDate === date && s.arrivalLocation === loc);
+      let currentGroup: Signup[] = [];
 
-    locUsers.forEach((user) => {
-      if (currentGroup.length === 0) {
-        currentGroup.push(user);
-      } else {
-        const firstInGroupTime = timeToMinutes(currentGroup[0].arrivalTime!);
-        const userTime = timeToMinutes(user.arrivalTime!);
-        if (userTime - firstInGroupTime <= 30) {
+      locUsers.forEach((user) => {
+        if (currentGroup.length === 0) {
           currentGroup.push(user);
         } else {
-          pushGroup(groups, currentGroup, volunteerMap, loc, 'arrival');
-          currentGroup = [user];
+          const firstInGroupTime = timeToMinutes(currentGroup[0].arrivalTime!);
+          const userTime = timeToMinutes(user.arrivalTime!);
+          if (userTime - firstInGroupTime <= 30) {
+            currentGroup.push(user);
+          } else {
+            pushGroup(groups, currentGroup, volunteerMap, loc, 'arrival', date);
+            currentGroup = [user];
+          }
         }
+      });
+      if (currentGroup.length > 0) {
+        pushGroup(groups, currentGroup, volunteerMap, loc, 'arrival', date);
       }
     });
-    if (currentGroup.length > 0) {
-      pushGroup(groups, currentGroup, volunteerMap, loc, 'arrival');
-    }
   });
 
   // 2. DEPARTURE LOGIC
   const departureUsers = signups
-    .filter(s => s.departureMode === 'shuttle' && s.departureTime && s.departureLocation)
-    .sort((a, b) => timeToMinutes(a.departureTime!) - timeToMinutes(b.departureTime!));
+    .filter(s => s.departureMode === 'shuttle' && s.departureTime && s.departureLocation && s.departureDate)
+    .sort((a, b) => {
+      if (a.departureDate! !== b.departureDate!) return a.departureDate!.localeCompare(b.departureDate!);
+      return timeToMinutes(a.departureTime!) - timeToMinutes(b.departureTime!);
+    });
 
-  locations.forEach(loc => {
-    const locUsers = departureUsers.filter(s => s.departureLocation === loc);
-    let currentGroup: Signup[] = [];
+  const departureDates = Array.from(new Set(departureUsers.map(u => u.departureDate!))).sort();
+  departureDates.forEach(date => {
+    locations.forEach(loc => {
+      const locUsers = departureUsers.filter(s => s.departureDate === date && s.departureLocation === loc);
+      let currentGroup: Signup[] = [];
 
-    locUsers.forEach((user) => {
-      if (currentGroup.length === 0) {
-        currentGroup.push(user);
-      } else {
-        const firstInGroupTime = timeToMinutes(currentGroup[0].departureTime!);
-        const userTime = timeToMinutes(user.departureTime!);
-        // Group departures: if within 30 mins
-        if (userTime - firstInGroupTime <= 30) {
+      locUsers.forEach((user) => {
+        if (currentGroup.length === 0) {
           currentGroup.push(user);
         } else {
-          pushGroup(groups, currentGroup, volunteerMap, loc, 'departure');
-          currentGroup = [user];
+          const firstInGroupTime = timeToMinutes(currentGroup[0].departureTime!);
+          const userTime = timeToMinutes(user.departureTime!);
+          if (userTime - firstInGroupTime <= 30) {
+            currentGroup.push(user);
+          } else {
+            pushGroup(groups, currentGroup, volunteerMap, loc, 'departure', date);
+            currentGroup = [user];
+          }
         }
+      });
+      if (currentGroup.length > 0) {
+        pushGroup(groups, currentGroup, volunteerMap, loc, 'departure', date);
       }
     });
-    if (currentGroup.length > 0) {
-      pushGroup(groups, currentGroup, volunteerMap, loc, 'departure');
-    }
   });
 
   return groups;
 };
 
-const pushGroup = (groups: ShuttleGroup[], users: Signup[], map: Record<string, User>, loc: string, type: 'arrival' | 'departure') => {
+const pushGroup = (groups: ShuttleGroup[], users: Signup[], map: Record<string, User>, loc: string, type: 'arrival' | 'departure', date: string) => {
   const isArrival = type === 'arrival';
   const getTime = (u: Signup) => isArrival ? u.arrivalTime! : u.departureTime!;
 
@@ -191,11 +203,12 @@ const pushGroup = (groups: ShuttleGroup[], users: Signup[], map: Record<string, 
   const locName = loc === 'Zaoqiao' ? '造橋車站' : loc === 'Zhunan' ? '竹南車站' : '苗栗高鐵';
 
   // Generate a consistent-ish ID for keying
-  const groupId = `${type}_${loc}_${startTime}_${users.length}`;
+  const groupId = `${type}_${date}_${loc}_${startTime}_${users.length}`;
 
   groups.push({
     id: groupId,
     type,
+    date,
     location: locName,
     windowStart: startTime,
     windowEnd: endTime,
@@ -232,6 +245,7 @@ export const generateDriverListText = (signups: Signup[], users: Record<string, 
     }
 
     text += `【${g.type === 'arrival' ? '去程' : '回程'} - 第 ${carNumber} 車】\n`;
+    text += `日期：${g.date}\n`;
     text += `司機：${assignedDriverName}\n`;
     text += `地點：${g.location}\n`;
     text += `建議發車：${g.suggestedDeparture}\n`;

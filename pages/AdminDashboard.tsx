@@ -491,7 +491,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 <span className={`text-sm font-black px-3 py-1 rounded-full ${group.type === 'arrival' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
                                   {group.type === 'arrival' ? '去程' : '回程'}
                                 </span>
-                                <span className="ml-3 font-extrabold text-xl text-gray-800">{group.location}</span>
+                                <div className="mt-2 text-xs font-bold text-gray-400">{formatDateShort(group.date)}</div>
+                                <span className="font-extrabold text-xl text-gray-800">{group.location}</span>
                               </div>
                               <div className="text-right">
                                 <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">建議發車</div>

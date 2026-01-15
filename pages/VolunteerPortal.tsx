@@ -91,11 +91,23 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
    // --- LOGIC ---
    const handleDayToggle = (day: string) => {
       const currentDays = formData.attendingDays || [];
+      let newDays = [];
       if (currentDays.includes(day)) {
-         setFormData({ ...formData, attendingDays: currentDays.filter(d => d !== day) });
+         newDays = currentDays.filter(d => d !== day);
       } else {
-         setFormData({ ...formData, attendingDays: [...currentDays, day].sort() });
+         newDays = [...currentDays, day].sort();
       }
+
+      const arrivalDate = newDays.length > 0 ? newDays[0] : '';
+      const departureDate = newDays.length > 0 ? newDays[newDays.length - 1] : '';
+
+      setFormData({
+         ...formData,
+         attendingDays: newDays,
+         arrivalDate,
+         departureDate
+      });
+
       // Clear error
       if (errors.attendingDays) setErrors({ ...errors, attendingDays: '' });
    };
@@ -115,29 +127,34 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
       const time = isDeparture ? formData.departureTime : formData.arrivalTime;
       const loc = isDeparture ? formData.departureLocation : formData.arrivalLocation;
       const mode = isDeparture ? formData.departureMode : formData.transportMode;
+      const date = isDeparture ? formData.departureDate : formData.arrivalDate;
 
-      if (selectedEvent && mode === 'shuttle' && time && loc) {
+      if (selectedEvent && mode === 'shuttle' && time && loc && date) {
          const relevantSignups = signups.filter(s =>
             s.eventId === selectedEventId &&
             s.volunteerId !== user.id &&
-            (isDeparture ? s.departureMode === 'shuttle' && s.departureLocation === loc : s.transportMode === 'shuttle' && s.arrivalLocation === loc)
+            (isDeparture
+               ? (s.departureMode === 'shuttle' && s.departureLocation === loc && s.departureDate === date)
+               : (s.transportMode === 'shuttle' && s.arrivalLocation === loc && s.arrivalDate === date))
          );
 
          const conflictCount = getSmartShuttleAlert(time, relevantSignups, isDeparture);
-         if (conflictCount > 0) setShowShuttleConflict(true); // Simple toggle for now
+         if (conflictCount > 0) setShowShuttleConflict(true);
+         else setShowShuttleConflict(false);
       }
    };
 
    const getExistingTimes = (isDeparture: boolean) => {
       const loc = isDeparture ? formData.departureLocation : formData.arrivalLocation;
-      if (!loc) return [];
+      const date = isDeparture ? formData.departureDate : formData.arrivalDate;
+      if (!loc || !date) return [];
 
       const relevant = signups.filter(s =>
          s.eventId === selectedEventId &&
          s.volunteerId !== user.id && // Don't count self if editing
          (isDeparture
-            ? (s.departureMode === 'shuttle' && s.departureLocation === loc && s.departureTime)
-            : (s.transportMode === 'shuttle' && s.arrivalLocation === loc && s.arrivalTime))
+            ? (s.departureMode === 'shuttle' && s.departureLocation === loc && s.departureDate === date && s.departureTime)
+            : (s.transportMode === 'shuttle' && s.arrivalLocation === loc && s.arrivalDate === date && s.arrivalTime))
       );
 
       // Group by time -> [names]
@@ -199,6 +216,12 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
          const allowedDates = getDatesInRange(selectedEvent.startDate, selectedEvent.endDate);
          submitData.meals = (submitData.meals || []).filter(m => allowedDates.includes(m.date));
          submitData.attendingDays = (submitData.attendingDays || []).filter(d => allowedDates.includes(d));
+
+         // Re-calculate the arrival/departure dates after filtering
+         if (submitData.attendingDays.length > 0) {
+            submitData.arrivalDate = submitData.attendingDays[0];
+            submitData.departureDate = submitData.attendingDays[submitData.attendingDays.length - 1];
+         }
       }
 
       onSignup({
@@ -376,11 +399,11 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                      </div>
                      <div className="flex justify-between border-b border-gray-200 pb-3">
                         <span className="text-gray-500 font-bold">去程</span>
-                        <span className="font-bold text-gray-800">{existingSignup.transportMode === 'shuttle' ? '接駁車' : '自理'} {existingSignup.arrivalTime}</span>
+                        <span className="font-bold text-gray-800">{existingSignup.transportMode === 'shuttle' ? '接駁車' : '自理'} {existingSignup.arrivalDate ? formatDateShort(existingSignup.arrivalDate) : ''} {existingSignup.arrivalTime}</span>
                      </div>
                      <div className="flex justify-between border-b border-gray-200 pb-3">
                         <span className="text-gray-500 font-bold">回程</span>
-                        <span className="font-bold text-gray-800">{existingSignup.departureMode === 'shuttle' ? '接駁車' : '自理'} {existingSignup.departureTime}</span>
+                        <span className="font-bold text-gray-800">{existingSignup.departureMode === 'shuttle' ? '接駁車' : '自理'} {existingSignup.departureDate ? formatDateShort(existingSignup.departureDate) : ''} {existingSignup.departureTime}</span>
                      </div>
                      <div className="flex justify-between border-b border-gray-200 pb-3">
                         <span className="text-gray-500 font-bold">餐食</span>
@@ -452,6 +475,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                                     <option value="Zhunan">竹南車站</option>
                                     <option value="HSR_Miaoli">苗栗高鐵</option>
                                  </select>
+                                 {formData.arrivalDate && <div className="mt-1 text-xs font-bold text-blue-600">日期：{formatDateShort(formData.arrivalDate)}</div>}
                               </div>
                               <div>
                                  <label className="text-xs font-bold uppercase tracking-wider text-blue-800 mb-2 block">時間 {errors.arrivalTime && <span className="text-red-500 ml-1">*</span>}</label>
@@ -507,6 +531,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                                     <option value="Zhunan">竹南車站</option>
                                     <option value="HSR_Miaoli">苗栗高鐵</option>
                                  </select>
+                                 {formData.departureDate && <div className="mt-1 text-xs font-bold text-orange-600">日期：{formatDateShort(formData.departureDate)}</div>}
                               </div>
                               <div>
                                  <label className="text-xs font-bold uppercase tracking-wider text-orange-800 mb-2 block">時間 {errors.departureTime && <span className="text-red-500 ml-1">*</span>}</label>
