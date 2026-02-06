@@ -579,7 +579,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                               <div>
                                  <label className="text-xs font-bold uppercase tracking-wider text-blue-800 mb-2 block">地點 {errors.arrivalLocation && <span className="text-red-500 ml-1">*</span>}</label>
-                                 <select className={`w-full h-[58px] p-3 rounded-xl border-2 text-lg bg-white focus:ring-0 outline-none ${errors.arrivalLocation ? 'border-red-300' : 'border-blue-100 focus:border-blue-500'}`}
+                                 <select className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none ${errors.arrivalLocation ? 'border-red-300' : 'border-blue-100 focus:border-blue-500'}`}
                                     value={formData.arrivalLocation} onChange={(e) => setFormData({ ...formData, arrivalLocation: e.target.value as any })}>
                                     <option value="Zaoqiao">造橋車站</option>
                                     <option value="Zhunan">竹南車站</option>
@@ -589,7 +589,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                               </div>
                               <div>
                                  <label className="text-xs font-bold uppercase tracking-wider text-blue-800 mb-2 block">時間 {errors.arrivalTime && <span className="text-red-500 ml-1">*</span>}</label>
-                                 <input type="time" className={`w-full h-[58px] p-3 rounded-xl border-2 text-lg bg-white focus:ring-0 outline-none ${errors.arrivalTime ? 'border-red-300' : 'border-blue-100 focus:border-blue-500'}`}
+                                 <input type="time" className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none ${errors.arrivalTime ? 'border-red-300' : 'border-blue-100 focus:border-blue-500'}`}
                                     value={formData.arrivalTime} onChange={(e) => setFormData({ ...formData, arrivalTime: e.target.value })}
                                     onBlur={() => checkShuttleConflict(false)} />
                               </div>
@@ -635,7 +635,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                               <div>
                                  <label className="text-xs font-bold uppercase tracking-wider text-orange-800 mb-2 block">地點 {errors.departureLocation && <span className="text-red-500 ml-1">*</span>}</label>
-                                 <select className={`w-full h-[58px] p-3 rounded-xl border-2 text-lg bg-white focus:ring-0 outline-none ${errors.departureLocation ? 'border-red-300' : 'border-orange-100 focus:border-orange-500'}`}
+                                 <select className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none ${errors.departureLocation ? 'border-red-300' : 'border-orange-100 focus:border-orange-500'}`}
                                     value={formData.departureLocation} onChange={(e) => setFormData({ ...formData, departureLocation: e.target.value as any })}>
                                     <option value="Zaoqiao">造橋車站</option>
                                     <option value="Zhunan">竹南車站</option>
@@ -645,7 +645,7 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                               </div>
                               <div>
                                  <label className="text-xs font-bold uppercase tracking-wider text-orange-800 mb-2 block">時間 {errors.departureTime && <span className="text-red-500 ml-1">*</span>}</label>
-                                 <input type="time" className={`w-full h-[58px] p-3 rounded-xl border-2 text-lg bg-white focus:ring-0 outline-none ${errors.departureTime ? 'border-red-300' : 'border-orange-100 focus:border-orange-500'}`}
+                                 <input type="time" className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none ${errors.departureTime ? 'border-red-300' : 'border-orange-100 focus:border-orange-500'}`}
                                     value={formData.departureTime} onChange={(e) => setFormData({ ...formData, departureTime: e.target.value })}
                                     onBlur={() => checkShuttleConflict(true)} />
                               </div>
