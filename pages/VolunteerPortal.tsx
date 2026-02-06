@@ -575,11 +575,11 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                         </button>
                      </div>
                      {formData.transportMode === 'shuttle' && (
-                        <div className="bg-blue-50/50 p-4 sm:p-6 rounded-2xl space-y-4 border border-blue-100">
-                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                              <div>
+                        <div className="bg-blue-50/50 p-4 sm:p-6 rounded-2xl space-y-4 border border-blue-100 overflow-hidden">
+                           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                              <div className="flex-1 min-w-0">
                                  <label className="text-xs font-bold uppercase tracking-wider text-blue-800 mb-2 block">地點 {errors.arrivalLocation && <span className="text-red-500 ml-1">*</span>}</label>
-                                 <select className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none ${errors.arrivalLocation ? 'border-red-300' : 'border-blue-100 focus:border-blue-500'}`}
+                                 <select className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none box-border ${errors.arrivalLocation ? 'border-red-300' : 'border-blue-100 focus:border-blue-500'}`}
                                     value={formData.arrivalLocation} onChange={(e) => setFormData({ ...formData, arrivalLocation: e.target.value as any })}>
                                     <option value="Zaoqiao">造橋車站</option>
                                     <option value="Zhunan">竹南車站</option>
@@ -587,9 +587,9 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                                  </select>
                                  {formData.arrivalDate && <div className="mt-1 text-xs font-bold text-blue-600">日期：{formatDateShort(formData.arrivalDate)}</div>}
                               </div>
-                              <div>
+                              <div className="flex-1 min-w-0">
                                  <label className="text-xs font-bold uppercase tracking-wider text-blue-800 mb-2 block">時間 {errors.arrivalTime && <span className="text-red-500 ml-1">*</span>}</label>
-                                 <input type="time" className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none ${errors.arrivalTime ? 'border-red-300' : 'border-blue-100 focus:border-blue-500'}`}
+                                 <input type="time" className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none box-border ${errors.arrivalTime ? 'border-red-300' : 'border-blue-100 focus:border-blue-500'}`}
                                     value={formData.arrivalTime} onChange={(e) => setFormData({ ...formData, arrivalTime: e.target.value })}
                                     onBlur={() => checkShuttleConflict(false)} />
                               </div>
@@ -631,11 +631,11 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                         </button>
                      </div>
                      {formData.departureMode === 'shuttle' && (
-                        <div className="bg-orange-50/50 p-4 sm:p-6 rounded-2xl space-y-4 border border-orange-100">
-                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                              <div>
+                        <div className="bg-orange-50/50 p-4 sm:p-6 rounded-2xl space-y-4 border border-orange-100 overflow-hidden">
+                           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                              <div className="flex-1 min-w-0">
                                  <label className="text-xs font-bold uppercase tracking-wider text-orange-800 mb-2 block">地點 {errors.departureLocation && <span className="text-red-500 ml-1">*</span>}</label>
-                                 <select className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none ${errors.departureLocation ? 'border-red-300' : 'border-orange-100 focus:border-orange-500'}`}
+                                 <select className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none box-border ${errors.departureLocation ? 'border-red-300' : 'border-orange-100 focus:border-orange-500'}`}
                                     value={formData.departureLocation} onChange={(e) => setFormData({ ...formData, departureLocation: e.target.value as any })}>
                                     <option value="Zaoqiao">造橋車站</option>
                                     <option value="Zhunan">竹南車站</option>
@@ -643,9 +643,9 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                                  </select>
                                  {formData.departureDate && <div className="mt-1 text-xs font-bold text-orange-600">日期：{formatDateShort(formData.departureDate)}</div>}
                               </div>
-                              <div>
+                              <div className="flex-1 min-w-0">
                                  <label className="text-xs font-bold uppercase tracking-wider text-orange-800 mb-2 block">時間 {errors.departureTime && <span className="text-red-500 ml-1">*</span>}</label>
-                                 <input type="time" className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none ${errors.departureTime ? 'border-red-300' : 'border-orange-100 focus:border-orange-500'}`}
+                                 <input type="time" className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none box-border ${errors.departureTime ? 'border-red-300' : 'border-orange-100 focus:border-orange-500'}`}
                                     value={formData.departureTime} onChange={(e) => setFormData({ ...formData, departureTime: e.target.value })}
                                     onBlur={() => checkShuttleConflict(true)} />
                               </div>
@@ -759,93 +759,99 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
          </div>
 
          {/* --- HISTORY MODAL --- */}
-         {showHistoryModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-               <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl animate-pop max-h-[80vh] flex flex-col">
-                  <div className="flex justify-between items-center mb-4">
-                     <h2 className="text-2xl font-extrabold text-gray-800">歷史服事紀錄</h2>
-                     <button onClick={() => setShowHistoryModal(false)}><X className="text-gray-400 hover:text-gray-600" /></button>
-                  </div>
-                  <div className="overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                     {signups.filter(s => s.volunteerId === user.id).length === 0 && <p className="text-gray-400 text-center py-10">尚無紀錄</p>}
-                     {signups.filter(s => s.volunteerId === user.id)
-                        .sort((a, b) => b.submissionDate.localeCompare(a.submissionDate))
-                        .map(s => {
-                           const evt = events.find(e => e.id === s.eventId) || { title: '未知活動', startDate: '??' } as any;
-                           return (
-                              <div key={s.id} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                 <div className="font-bold text-gray-800">{evt.title}</div>
-                                 <div className="text-sm text-gray-500 flex justify-between mt-1">
-                                    <span>{formatDateShort(evt.startDate)}</span>
-                                    <span className="text-mint-600 font-bold">已參加</span>
+         {
+            showHistoryModal && (
+               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl animate-pop max-h-[80vh] flex flex-col">
+                     <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-extrabold text-gray-800">歷史服事紀錄</h2>
+                        <button onClick={() => setShowHistoryModal(false)}><X className="text-gray-400 hover:text-gray-600" /></button>
+                     </div>
+                     <div className="overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                        {signups.filter(s => s.volunteerId === user.id).length === 0 && <p className="text-gray-400 text-center py-10">尚無紀錄</p>}
+                        {signups.filter(s => s.volunteerId === user.id)
+                           .sort((a, b) => b.submissionDate.localeCompare(a.submissionDate))
+                           .map(s => {
+                              const evt = events.find(e => e.id === s.eventId) || { title: '未知活動', startDate: '??' } as any;
+                              return (
+                                 <div key={s.id} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                    <div className="font-bold text-gray-800">{evt.title}</div>
+                                    <div className="text-sm text-gray-500 flex justify-between mt-1">
+                                       <span>{formatDateShort(evt.startDate)}</span>
+                                       <span className="text-mint-600 font-bold">已參加</span>
+                                    </div>
                                  </div>
-                              </div>
-                           )
-                        })}
+                              )
+                           })}
+                     </div>
                   </div>
                </div>
-            </div>
-         )}
+            )
+         }
 
          {/* --- CHART MODAL (NOW A GRID) --- */}
-         {showChartModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-               <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl animate-pop">
-                  <div className="flex justify-between items-center mb-6">
-                     <h2 className="text-2xl font-extrabold text-gray-800">每月服事統計</h2>
-                     <button onClick={() => setShowChartModal(false)}><X className="text-gray-400 hover:text-gray-600" /></button>
-                  </div>
+         {
+            showChartModal && (
+               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                  <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl animate-pop">
+                     <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-extrabold text-gray-800">每月服事統計</h2>
+                        <button onClick={() => setShowChartModal(false)}><X className="text-gray-400 hover:text-gray-600" /></button>
+                     </div>
 
-                  <div className="flex gap-2 mb-6 items-center justify-center bg-gray-50 p-2 rounded-xl">
-                     <input type="month" className="bg-white border border-gray-300 rounded-lg px-2 py-1 text-sm font-bold" value={chartRange.start} onChange={e => setChartRange({ ...chartRange, start: e.target.value })} />
-                     <span className="text-gray-400">~</span>
-                     <input type="month" className="bg-white border border-gray-300 rounded-lg px-2 py-1 text-sm font-bold" value={chartRange.end} onChange={e => setChartRange({ ...chartRange, end: e.target.value })} />
-                  </div>
+                     <div className="flex gap-2 mb-6 items-center justify-center bg-gray-50 p-2 rounded-xl">
+                        <input type="month" className="bg-white border border-gray-300 rounded-lg px-2 py-1 text-sm font-bold" value={chartRange.start} onChange={e => setChartRange({ ...chartRange, start: e.target.value })} />
+                        <span className="text-gray-400">~</span>
+                        <input type="month" className="bg-white border border-gray-300 rounded-lg px-2 py-1 text-sm font-bold" value={chartRange.end} onChange={e => setChartRange({ ...chartRange, end: e.target.value })} />
+                     </div>
 
-                  {/* REPLACED CHART WITH GRID */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                     {getMonthlyStats().map(([month, count]) => (
-                        <div key={month} className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition ${count > 0 ? 'bg-vibrant-50 border-vibrant-200' : 'bg-gray-50 border-gray-100'}`}>
-                           <span className="text-gray-500 font-bold text-sm mb-1">{month}</span>
-                           <span className={`text-3xl font-black ${count > 0 ? 'text-vibrant-500' : 'text-gray-300'}`}>{count}</span>
-                           <span className="text-xs text-gray-400 font-bold mt-1">次</span>
-                        </div>
-                     ))}
-                     {getMonthlyStats().length === 0 && <div className="col-span-3 text-center text-gray-400 py-4">此區間無數據</div>}
+                     {/* REPLACED CHART WITH GRID */}
+                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                        {getMonthlyStats().map(([month, count]) => (
+                           <div key={month} className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition ${count > 0 ? 'bg-vibrant-50 border-vibrant-200' : 'bg-gray-50 border-gray-100'}`}>
+                              <span className="text-gray-500 font-bold text-sm mb-1">{month}</span>
+                              <span className={`text-3xl font-black ${count > 0 ? 'text-vibrant-500' : 'text-gray-300'}`}>{count}</span>
+                              <span className="text-xs text-gray-400 font-bold mt-1">次</span>
+                           </div>
+                        ))}
+                        {getMonthlyStats().length === 0 && <div className="col-span-3 text-center text-gray-400 py-4">此區間無數據</div>}
+                     </div>
                   </div>
                </div>
-            </div>
-         )}
+            )
+         }
 
          {/* --- EARLY ARRIVAL WARNING MODAL --- */}
-         {showEarlyArrivalModal && (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-               <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl animate-pop border-4 border-amber-100">
-                  <div className="flex flex-col items-center text-center space-y-6">
-                     <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center animate-bounce">
-                        <Bell size={40} />
+         {
+            showEarlyArrivalModal && (
+               <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                  <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl animate-pop border-4 border-amber-100">
+                     <div className="flex flex-col items-center text-center space-y-6">
+                        <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center animate-bounce">
+                           <Bell size={40} />
+                        </div>
+                        <div>
+                           <h2 className="text-2xl font-black text-gray-800 mb-2">已送出提早申請！</h2>
+                           <p className="text-gray-600 font-bold leading-relaxed">
+                              您的提早上山申請已進入審核狀態。<br />
+                              <span className="text-red-500 underline">請務必主動聯繫行政管理員</span><br />
+                              告知您的需求以便加速處理。
+                           </p>
+                        </div>
+                        <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 w-full text-sm text-amber-800 font-bold">
+                           ※ 若管理員最終未核准，系統將自動將您的行程調整回聚會首日。
+                        </div>
+                        <button
+                           onClick={() => setShowEarlyArrivalModal(false)}
+                           className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black shadow-lg shadow-amber-200 transition active:scale-95"
+                        >
+                           知道了
+                        </button>
                      </div>
-                     <div>
-                        <h2 className="text-2xl font-black text-gray-800 mb-2">已送出提早申請！</h2>
-                        <p className="text-gray-600 font-bold leading-relaxed">
-                           您的提早上山申請已進入審核狀態。<br />
-                           <span className="text-red-500 underline">請務必主動聯繫行政管理員</span><br />
-                           告知您的需求以便加速處理。
-                        </p>
-                     </div>
-                     <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 w-full text-sm text-amber-800 font-bold">
-                        ※ 若管理員最終未核准，系統將自動將您的行程調整回聚會首日。
-                     </div>
-                     <button
-                        onClick={() => setShowEarlyArrivalModal(false)}
-                        className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black shadow-lg shadow-amber-200 transition active:scale-95"
-                     >
-                        知道了
-                     </button>
                   </div>
                </div>
-            </div>
-         )}
-      </div>
+            )
+         }
+      </div >
    );
 };
