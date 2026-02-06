@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -63,11 +62,8 @@ model Signup {
   departureTime     String?
   notes             String?
   submissionDate    String
-  earlyArrivalType   String?
-  earlyArrivalStatus String        @default("NONE")
-  earlyArrivalReason String?
-  volunteer         User          @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
   event             MinistryEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  volunteer         User          @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
 }
 
 model AdminTask {
