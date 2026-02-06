@@ -262,9 +262,22 @@ app.get('/api/signups', async (req, res) => {
 app.post('/api/signups', async (req, res) => {
     try {
         const { attendingDays, meals, ...rest } = req.body;
+
+        // Pick only allowed fields to prevent schema mismatch
+        const allowedFields = [
+            'eventId', 'volunteerId', 'transportMode', 'arrivalLocation', 'arrivalDate', 'arrivalTime',
+            'departureMode', 'departureLocation', 'departureDate', 'departureTime', 'notes', 'submissionDate',
+            'earlyArrivalType', 'earlyArrivalStatus', 'earlyArrivalReason'
+        ];
+
+        const dataToSave: any = {};
+        allowedFields.forEach(field => {
+            if (rest[field] !== undefined) dataToSave[field] = rest[field];
+        });
+
         const signup = await prisma.signup.create({
             data: {
-                ...rest,
+                ...dataToSave,
                 attendingDays: JSON.stringify(attendingDays),
                 meals: JSON.stringify(meals)
             },
@@ -273,7 +286,7 @@ app.post('/api/signups', async (req, res) => {
 
         res.json(signup);
     } catch (e) {
-        console.error(e);
+        console.error('Create Signup Error:', e);
         res.status(400).json({ error: '報名失敗' });
     }
 });
@@ -305,7 +318,8 @@ app.put('/api/signups/:id', async (req, res) => {
         // Strictly pick only scalar fields allowed in Signup model
         const allowedFields = [
             'eventId', 'volunteerId', 'transportMode', 'arrivalLocation', 'arrivalDate', 'arrivalTime',
-            'departureMode', 'departureLocation', 'departureDate', 'departureTime', 'notes', 'submissionDate'
+            'departureMode', 'departureLocation', 'departureDate', 'departureTime', 'notes', 'submissionDate',
+            'earlyArrivalType', 'earlyArrivalStatus', 'earlyArrivalReason'
         ];
 
         const updateData: any = {};

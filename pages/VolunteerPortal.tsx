@@ -107,7 +107,13 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
          newDays = [...currentDays, day].sort();
       }
       const sortedDays = [...newDays].sort((a, b) => a.localeCompare(b));
-      const arrivalDate = sortedDays.length > 0 ? sortedDays[0] : '';
+
+      // Calculate arrivalDate: Use existing arrivalDate if early arrival is requested
+      let arrivalDate = sortedDays.length > 0 ? sortedDays[0] : '';
+      if (formData.earlyArrivalType && formData.earlyArrivalType !== 'none' && formData.arrivalDate) {
+         arrivalDate = formData.arrivalDate;
+      }
+
       const departureDate = sortedDays.length > 0 ? sortedDays[sortedDays.length - 1] : '';
 
       setFormData({
@@ -498,15 +504,21 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                      </label>
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                           <label className="text-xs font-bold text-amber-700 mb-2 block uppercase tracking-wider">提早時數</label>
+                           <label className="text-xs font-bold text-amber-700 mb-2 block uppercase tracking-wider">提早日期</label>
                            <select
                               className="w-full p-3 rounded-xl border-2 border-amber-200 bg-white font-bold text-gray-700 outline-none focus:border-amber-400 transition"
                               value={formData.earlyArrivalType || ''}
                               onChange={(e) => {
                                  const type = e.target.value;
-                                 const days = type === '1_day' ? -1 : type === '2_days' ? -2 : 0;
+                                 let days = 0;
+                                 if (type === '1_day') days = -1;
+                                 else if (type === '2_days') days = -2;
+                                 else if (type === '3_days') days = -3;
+                                 else if (type === '4_days') days = -4;
+                                 else if (type === '5_days') days = -5;
+
                                  const baseDate = selectedEvent!.startDate;
-                                 const newArrivalDate = days < 0 ? addDays(baseDate, days) : baseDate;
+                                 const newArrivalDate = days < 0 ? addDays(baseDate, days) : (formData.attendingDays?.[0] || baseDate);
 
                                  setFormData(prev => ({
                                     ...prev,
@@ -518,11 +530,14 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                               <option value="">不提早 (當天報到)</option>
                               <option value="1_day">提早 1 天</option>
                               <option value="2_days">提早 2 天</option>
+                              <option value="3_days">提早 3 天</option>
+                              <option value="4_days">提早 4 天</option>
+                              <option value="5_days">提早 5 天</option>
                            </select>
                         </div>
                         {formData.earlyArrivalType && (
                            <div>
-                              <label className="text-xs font-bold text-amber-700 mb-2 block uppercase tracking-wider">申請理由</label>
+                              <label className="text-xs font-bold text-amber-700 mb-2 block uppercase tracking-wider">提早原因</label>
                               <input
                                  className="w-full p-3 rounded-xl border-2 border-amber-200 bg-white text-gray-700 outline-none focus:border-amber-400 transition"
                                  placeholder="例如：交通安排、提早協助..."

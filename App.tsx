@@ -234,7 +234,8 @@ export default function App() {
       // Silently refresh in background
       loadData();
     } catch (err) {
-      alert('報名或更新失敗: ' + err);
+      console.error('報名或更新失敗:', err);
+      // alert('報名或更新失敗: ' + err); // Removed per user request
       loadData(); // Revert on actual error
     }
   };

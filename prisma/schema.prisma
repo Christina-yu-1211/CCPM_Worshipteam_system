@@ -63,6 +63,9 @@ model Signup {
   departureTime     String?
   notes             String?
   submissionDate    String
+  earlyArrivalType  String?
+  earlyArrivalStatus String @default("NONE")
+  earlyArrivalReason String?
   event             MinistryEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
   volunteer         User          @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
 }
