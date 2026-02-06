@@ -576,8 +576,8 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                      </div>
                      {formData.transportMode === 'shuttle' && (
                         <div className="bg-blue-50/50 p-4 sm:p-6 rounded-2xl space-y-4 border border-blue-100 overflow-hidden">
-                           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                              <div className="flex-1 min-w-0">
+                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                              <div className="min-w-0">
                                  <label className="text-xs font-bold uppercase tracking-wider text-blue-800 mb-2 block">地點 {errors.arrivalLocation && <span className="text-red-500 ml-1">*</span>}</label>
                                  <select className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none box-border ${errors.arrivalLocation ? 'border-red-300' : 'border-blue-100 focus:border-blue-500'}`}
                                     value={formData.arrivalLocation} onChange={(e) => setFormData({ ...formData, arrivalLocation: e.target.value as any })}>
@@ -587,9 +587,9 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                                  </select>
                                  {formData.arrivalDate && <div className="mt-1 text-xs font-bold text-blue-600">日期：{formatDateShort(formData.arrivalDate)}</div>}
                               </div>
-                              <div className="flex-1 min-w-0">
+                              <div className="min-w-0">
                                  <label className="text-xs font-bold uppercase tracking-wider text-blue-800 mb-2 block">時間 {errors.arrivalTime && <span className="text-red-500 ml-1">*</span>}</label>
-                                 <input type="time" className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none box-border ${errors.arrivalTime ? 'border-red-300' : 'border-blue-100 focus:border-blue-500'}`}
+                                 <input type="time" className={`w-full max-w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none box-border ${errors.arrivalTime ? 'border-red-300' : 'border-blue-100 focus:border-blue-500'}`}
                                     value={formData.arrivalTime} onChange={(e) => setFormData({ ...formData, arrivalTime: e.target.value })}
                                     onBlur={() => checkShuttleConflict(false)} />
                               </div>
@@ -632,8 +632,8 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                      </div>
                      {formData.departureMode === 'shuttle' && (
                         <div className="bg-orange-50/50 p-4 sm:p-6 rounded-2xl space-y-4 border border-orange-100 overflow-hidden">
-                           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                              <div className="flex-1 min-w-0">
+                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                              <div className="min-w-0">
                                  <label className="text-xs font-bold uppercase tracking-wider text-orange-800 mb-2 block">地點 {errors.departureLocation && <span className="text-red-500 ml-1">*</span>}</label>
                                  <select className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none box-border ${errors.departureLocation ? 'border-red-300' : 'border-orange-100 focus:border-orange-500'}`}
                                     value={formData.departureLocation} onChange={(e) => setFormData({ ...formData, departureLocation: e.target.value as any })}>
@@ -643,9 +643,9 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                                  </select>
                                  {formData.departureDate && <div className="mt-1 text-xs font-bold text-orange-600">日期：{formatDateShort(formData.departureDate)}</div>}
                               </div>
-                              <div className="flex-1 min-w-0">
+                              <div className="min-w-0">
                                  <label className="text-xs font-bold uppercase tracking-wider text-orange-800 mb-2 block">時間 {errors.departureTime && <span className="text-red-500 ml-1">*</span>}</label>
-                                 <input type="time" className={`w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none box-border ${errors.departureTime ? 'border-red-300' : 'border-orange-100 focus:border-orange-500'}`}
+                                 <input type="time" className={`w-full max-w-full h-12 px-4 rounded-xl border-2 text-base bg-white focus:ring-0 outline-none box-border ${errors.departureTime ? 'border-red-300' : 'border-orange-100 focus:border-orange-500'}`}
                                     value={formData.departureTime} onChange={(e) => setFormData({ ...formData, departureTime: e.target.value })}
                                     onBlur={() => checkShuttleConflict(true)} />
                               </div>
