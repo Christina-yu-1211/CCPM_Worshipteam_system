@@ -575,8 +575,8 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                         </button>
                      </div>
                      {formData.transportMode === 'shuttle' && (
-                        <div className="bg-blue-50/50 p-6 rounded-2xl space-y-4 border border-blue-100">
-                           <div className="grid grid-cols-2 gap-6">
+                        <div className="bg-blue-50/50 p-4 sm:p-6 rounded-2xl space-y-4 border border-blue-100">
+                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                               <div>
                                  <label className="text-xs font-bold uppercase tracking-wider text-blue-800 mb-2 block">地點 {errors.arrivalLocation && <span className="text-red-500 ml-1">*</span>}</label>
                                  <select className={`w-full p-3 rounded-xl border-2 text-lg bg-white focus:ring-0 outline-none ${errors.arrivalLocation ? 'border-red-300' : 'border-blue-100 focus:border-blue-500'}`}
@@ -631,8 +631,8 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                         </button>
                      </div>
                      {formData.departureMode === 'shuttle' && (
-                        <div className="bg-orange-50/50 p-6 rounded-2xl space-y-4 border border-orange-100">
-                           <div className="grid grid-cols-2 gap-6">
+                        <div className="bg-orange-50/50 p-4 sm:p-6 rounded-2xl space-y-4 border border-orange-100">
+                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                               <div>
                                  <label className="text-xs font-bold uppercase tracking-wider text-orange-800 mb-2 block">地點 {errors.departureLocation && <span className="text-red-500 ml-1">*</span>}</label>
                                  <select className={`w-full p-3 rounded-xl border-2 text-lg bg-white focus:ring-0 outline-none ${errors.departureLocation ? 'border-red-300' : 'border-orange-100 focus:border-orange-500'}`}
