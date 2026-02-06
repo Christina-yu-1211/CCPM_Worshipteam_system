@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MinistryEvent, Signup, EventSeries, User } from '../types';
-import { getSmartShuttleAlert, isLunchLocked, formatDateShort, isEventPast, getDatesInRange } from '../utils';
-import { Clock, Utensils, AlertCircle, CheckCircle, Calendar, ArrowRight, Edit, Users, X, BarChart2, History, AlertTriangle, Info } from 'lucide-react';
+import { getSmartShuttleAlert, isLunchLocked, formatDateShort, isEventPast, getDatesInRange, addDays } from '../utils';
+import { Clock, Utensils, AlertCircle, CheckCircle, Calendar, ArrowRight, Edit, Users, X, BarChart2, History, AlertTriangle, Info, Bell } from 'lucide-react';
 
 interface VolunteerPortalProps {
    user: User;
@@ -40,8 +40,12 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
       departureTime: '12:00',
       attendingDays: [],
       meals: [],
-      notes: ''
+      notes: '',
+      earlyArrivalType: '',
+      earlyArrivalStatus: 'NONE',
+      earlyArrivalReason: ''
    });
+   const [showEarlyArrivalModal, setShowEarlyArrivalModal] = useState(false);
 
    const [showArrivalConflict, setShowArrivalConflict] = useState(false);
    const [showDepartureConflict, setShowDepartureConflict] = useState(false);
@@ -75,7 +79,10 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                departureTime: '12:00',
                attendingDays: [],
                meals: [],
-               notes: ''
+               notes: '',
+               earlyArrivalType: '',
+               earlyArrivalStatus: 'NONE',
+               earlyArrivalReason: ''
             });
          }
          setIsEditing(false);
@@ -237,13 +244,16 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
       // --- SAFETY FILTER ---
       // Ensure we only save meals and days that actually belong to THIS event
       if (selectedEvent) {
-         const allowedDates = getDatesInRange(selectedEvent.startDate, selectedEvent.endDate);
-         submitData.meals = (submitData.meals || []).filter(m => allowedDates.includes(m.date));
-         submitData.attendingDays = (submitData.attendingDays || []).filter(d => allowedDates.includes(d));
+         const officialDates = getDatesInRange(selectedEvent.startDate, selectedEvent.endDate);
+         submitData.meals = (submitData.meals || []).filter(m => officialDates.includes(m.date));
+         submitData.attendingDays = (submitData.attendingDays || []).filter(d => officialDates.includes(d));
 
          // Re-calculate the arrival/departure dates after filtering
+         // Only overwrite arrivalDate if NOT doing early arrival
          if (submitData.attendingDays.length > 0) {
-            submitData.arrivalDate = submitData.attendingDays[0];
+            if (!submitData.earlyArrivalType || submitData.earlyArrivalType === 'none') {
+               submitData.arrivalDate = submitData.attendingDays[0];
+            }
             submitData.departureDate = submitData.attendingDays[submitData.attendingDays.length - 1];
          }
       }
@@ -252,8 +262,13 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
          eventId: selectedEventId,
          volunteerId: user.id,
          submissionDate: new Date().toISOString(),
-         ...submitData
+         ...submitData,
+         earlyArrivalStatus: submitData.earlyArrivalType ? 'PENDING' : 'NONE'
       });
+
+      if (submitData.earlyArrivalType) {
+         setShowEarlyArrivalModal(true);
+      }
 
       // Reset
       setFormData({
@@ -267,7 +282,10 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
          departureTime: '12:00',
          attendingDays: [],
          meals: [],
-         notes: ''
+         notes: '',
+         earlyArrivalType: '',
+         earlyArrivalStatus: 'NONE',
+         earlyArrivalReason: ''
       });
       setErrors({});
       setIsEditing(false);
@@ -470,6 +488,59 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                            </button>
                         ))}
                      </div>
+                  </section>
+
+                  {/* 1.5 Early Arrival Selection */}
+                  <section className="bg-amber-50 p-6 rounded-3xl border border-amber-100 space-y-4 shadow-inner">
+                     <label className="text-lg font-extrabold text-amber-900 flex items-center gap-3">
+                        <div className="w-8 h-8 bg-amber-200 text-amber-700 rounded-full flex items-center justify-center text-sm font-black">!</div>
+                        聚會前提早上山申請 (需經審核)
+                     </label>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                           <label className="text-xs font-bold text-amber-700 mb-2 block uppercase tracking-wider">提早時數</label>
+                           <select
+                              className="w-full p-3 rounded-xl border-2 border-amber-200 bg-white font-bold text-gray-700 outline-none focus:border-amber-400 transition"
+                              value={formData.earlyArrivalType || ''}
+                              onChange={(e) => {
+                                 const type = e.target.value;
+                                 const days = type === '1_day' ? -1 : type === '2_days' ? -2 : 0;
+                                 const baseDate = selectedEvent!.startDate;
+                                 const newArrivalDate = days < 0 ? addDays(baseDate, days) : baseDate;
+
+                                 setFormData(prev => ({
+                                    ...prev,
+                                    earlyArrivalType: type,
+                                    arrivalDate: newArrivalDate
+                                 }));
+                              }}
+                           >
+                              <option value="">不提早 (當天報到)</option>
+                              <option value="1_day">提早 1 天</option>
+                              <option value="2_days">提早 2 天</option>
+                           </select>
+                        </div>
+                        {formData.earlyArrivalType && (
+                           <div>
+                              <label className="text-xs font-bold text-amber-700 mb-2 block uppercase tracking-wider">申請理由</label>
+                              <input
+                                 className="w-full p-3 rounded-xl border-2 border-amber-200 bg-white text-gray-700 outline-none focus:border-amber-400 transition"
+                                 placeholder="例如：交通安排、提早協助..."
+                                 value={formData.earlyArrivalReason || ''}
+                                 onChange={(e) => setFormData({ ...formData, earlyArrivalReason: e.target.value })}
+                              />
+                           </div>
+                        )}
+                     </div>
+                     {formData.earlyArrivalType && (
+                        <div className="flex gap-3 bg-white/50 p-4 rounded-2xl border border-amber-200/50">
+                           <Info size={18} className="text-amber-600 shrink-0 mt-0.5" />
+                           <p className="text-sm font-bold text-amber-700 leading-relaxed">
+                              系統已自動計算抵達日期為 <span className="text-amber-900 underline font-black">{formatDateShort(formData.arrivalDate!)}</span>。<br />
+                              送出後請務必<span className="text-red-600 font-black">主動告知管理員</span>，待後台核准後始為正式登記。
+                           </p>
+                        </div>
+                     )}
                   </section>
 
                   {/* 2. Arrival Transport */}
@@ -731,6 +802,35 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
             </div>
          )}
 
+         {/* --- EARLY ARRIVAL WARNING MODAL --- */}
+         {showEarlyArrivalModal && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+               <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl animate-pop border-4 border-amber-100">
+                  <div className="flex flex-col items-center text-center space-y-6">
+                     <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center animate-bounce">
+                        <Bell size={40} />
+                     </div>
+                     <div>
+                        <h2 className="text-2xl font-black text-gray-800 mb-2">已送出提早申請！</h2>
+                        <p className="text-gray-600 font-bold leading-relaxed">
+                           您的提早上山申請已進入審核狀態。<br />
+                           <span className="text-red-500 underline">請務必主動聯繫行政管理員</span><br />
+                           告知您的需求以便加速處理。
+                        </p>
+                     </div>
+                     <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 w-full text-sm text-amber-800 font-bold">
+                        ※ 若管理員最終未核准，系統將自動將您的行程調整回聚會首日。
+                     </div>
+                     <button
+                        onClick={() => setShowEarlyArrivalModal(false)}
+                        className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black shadow-lg shadow-amber-200 transition active:scale-95"
+                     >
+                        知道了
+                     </button>
+                  </div>
+               </div>
+            </div>
+         )}
       </div>
    );
 };

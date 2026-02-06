@@ -251,6 +251,17 @@ export default function App() {
     }
   };
 
+  const handleUpdateSignup = async (id: string, data: Partial<Signup>) => {
+    try {
+      setSignups(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
+      await api.updateSignup(id, data);
+      loadData();
+    } catch (err) {
+      alert('更新失敗: ' + err);
+      loadData();
+    }
+  };
+
 
   const handleSeriesAction = async (action: 'add' | 'edit' | 'delete', data: any) => {
     const oldSeries = [...series];
@@ -585,6 +596,7 @@ export default function App() {
           onUpdateTask={handleAdminActions.updateTask}
           onDeleteTask={handleAdminActions.deleteTask}
           onManageUser={handleAdminActions.manageUser}
+          onUpdateSignup={handleUpdateSignup}
           onSeriesAction={handleSeriesAction}
           onTriggerEmailCheck={handleTriggerEmailCheck}
         />

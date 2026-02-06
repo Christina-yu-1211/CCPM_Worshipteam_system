@@ -67,6 +67,9 @@ export interface Signup {
 
   notes?: string;
   submissionDate: string; // For sorting
+  earlyArrivalType?: string;
+  earlyArrivalStatus: string;
+  earlyArrivalReason?: string;
 }
 
 export interface ShuttleGroup {
