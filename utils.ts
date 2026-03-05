@@ -214,7 +214,7 @@ const pushGroup = (groups: ShuttleGroup[], users: Signup[], map: Record<string, 
   const locName = loc === 'Zaoqiao' ? '造橋車站' : loc === 'Zhunan' ? '竹南車站' : '苗栗高鐵';
 
   // Generate a consistent-ish ID for keying
-  const groupId = `${type}_${date}_${loc}_${startTime}_${users.length}`;
+  const groupId = `${type}_${date}_${loc}_${startTime}`;
 
   groups.push({
     id: groupId,

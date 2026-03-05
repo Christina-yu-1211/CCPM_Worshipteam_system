@@ -36,6 +36,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [expandedEventIds, setExpandedEventIds] = useState<string[]>([]);
   const [driverAssignments, setDriverAssignments] = useState<Record<string, string>>({});
 
+  // Update driver assignments from events
+  useEffect(() => {
+    const freshAssignments: Record<string, string> = {};
+    events.forEach(e => {
+      if (e.shuttleConfig) {
+        try {
+          Object.assign(freshAssignments, JSON.parse(e.shuttleConfig));
+        } catch (err) { }
+      }
+    });
+    setDriverAssignments(freshAssignments);
+  }, [events]);
+
   // Events View State
   const [showArchivedEvents, setShowArchivedEvents] = useState(false);
 
@@ -264,12 +277,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleCopyDriverList = (evt: MinistryEvent, eventSignups: Signup[]) => {
-    const text = generateDriverListText(eventSignups, volunteerMap, driverAssignments, { arrival: evt.startDate, departure: evt.endDate });
+    // Merge global state with specific event state just in case
+    const mergedAssignments = { ...driverAssignments };
+    if (evt.shuttleConfig) {
+      try {
+        Object.assign(mergedAssignments, JSON.parse(evt.shuttleConfig));
+      } catch (e) { }
+    }
+    const text = generateDriverListText(eventSignups, volunteerMap, mergedAssignments, { arrival: evt.startDate, departure: evt.endDate });
     navigator.clipboard.writeText(text).then(() => alert('已複製到剪貼簿！'));
   };
 
-  const handleDriverAssign = (groupId: string, driverId: string) => {
-    setDriverAssignments(prev => ({ ...prev, [groupId]: driverId }));
+  const handleDriverAssign = async (groupId: string, driverId: string, eventId: string, evt: MinistryEvent) => {
+    const nextAssignments = { ...driverAssignments, [groupId]: driverId };
+    setDriverAssignments(nextAssignments);
+    await onUpdateEvent({ ...evt, shuttleConfig: JSON.stringify(nextAssignments) });
   };
 
   const handleViewPassword = (user: User) => {
@@ -579,8 +601,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 <label className="text-sm font-extrabold text-gray-500 block mb-2 tracking-wide">指派司機</label>
                                 <select
                                   className="w-full text-base p-3 border-2 border-gray-200 rounded-xl bg-white focus:border-mint-500 focus:ring-0 outline-none transition"
-                                  value={driverAssignments[group.id] || ''}
-                                  onChange={(e) => handleDriverAssign(group.id, e.target.value)}
+                                  value={
+                                    (evt.shuttleConfig && JSON.parse(evt.shuttleConfig)[group.id]) ||
+                                    driverAssignments[group.id] || ''
+                                  }
+                                  onChange={(e) => handleDriverAssign(group.id, e.target.value, evt.id, evt)}
                                 >
                                   <option value="">-- 請選擇 --</option>
                                   {users.map(u => (

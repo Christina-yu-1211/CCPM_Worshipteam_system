@@ -209,7 +209,7 @@ app.put('/api/events/:id', async (req, res) => {
         const allowedFields = [
             'seriesId', 'title', 'startDate', 'endDate', 'startTime',
             'location', 'isRegistrationOpen', 'registrationDeadline',
-            'remarks', 'isReportDownloaded'
+            'remarks', 'isReportDownloaded', 'shuttleConfig'
         ];
 
         const updateData: any = {};

@@ -39,6 +39,7 @@ model MinistryEvent {
   startTime            String
   location             String
   mealsConfig          String
+  shuttleConfig        String? // This could store driver assignments as JSON string
   isRegistrationOpen   Boolean     @default(true)
   registrationDeadline String
   remarks              String?
@@ -48,26 +49,26 @@ model MinistryEvent {
 }
 
 model Signup {
-  id                String        @id @default(uuid())
-  eventId           String
-  volunteerId       String
-  attendingDays     String
-  meals             String
-  transportMode     String
-  arrivalLocation   String?
-  arrivalDate       String?
-  arrivalTime       String?
-  departureMode     String?
-  departureLocation String?
-  departureDate     String?
-  departureTime     String?
-  notes             String?
-  submissionDate    String
-  earlyArrivalType  String?
-  earlyArrivalStatus String @default("NONE")
+  id                 String        @id @default(uuid())
+  eventId            String
+  volunteerId        String
+  attendingDays      String
+  meals              String
+  transportMode      String
+  arrivalLocation    String?
+  arrivalDate        String?
+  arrivalTime        String?
+  departureMode      String?
+  departureLocation  String?
+  departureDate      String?
+  departureTime      String?
+  notes              String?
+  submissionDate     String
+  earlyArrivalType   String?
+  earlyArrivalStatus String        @default("NONE")
   earlyArrivalReason String?
-  event             MinistryEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  volunteer         User          @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  event              MinistryEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  volunteer          User          @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
 }
 
 model AdminTask {

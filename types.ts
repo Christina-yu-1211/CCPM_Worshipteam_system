@@ -34,6 +34,7 @@ export interface MinistryEvent {
   registrationDeadline: string;
   remarks?: string;
   isReportDownloaded?: boolean;
+  shuttleConfig?: string; // Add shuttleConfig here
 }
 
 export interface AdminTask {
