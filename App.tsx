@@ -107,7 +107,8 @@ export default function App() {
     const latestUsers = await api.getUsers();
     setUsers(latestUsers);
 
-    const user = latestUsers.find(u => u.email === email && u.password === password);
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = latestUsers.find(u => u.email === normalizedEmail && u.password === password);
     if (user) {
       if (!user.isApproved) {
         alert('您的帳號尚未經過核心同工核准，請耐心等候或聯繫相關人員。');
@@ -115,6 +116,8 @@ export default function App() {
       }
       setCurrentUser(user);
       localStorage.setItem('currentUser', JSON.stringify(user));
+      // Ensure all data is loaded for the newly logged-in user
+      await loadData();
     } else {
       alert('登入失敗：Email 或密碼錯誤，或者您尚未註冊。');
     }
@@ -128,7 +131,8 @@ export default function App() {
       return;
     }
 
-    if (users.some(u => u.email === email && u.id !== registerUserId)) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (users.some(u => u.email === normalizedEmail && u.id !== registerUserId)) {
       alert('此 Email 已被使用');
       return;
     }
@@ -142,7 +146,7 @@ export default function App() {
         // Update existing user
         const targetUser = users.find(u => u.id === registerUserId);
         if (targetUser) {
-          const updated = await api.updateUser(targetUser.id, { email, password });
+          const updated = await api.updateUser(targetUser.id, { email: normalizedEmail, password });
           alert('註冊成功！請使用新密碼登入。');
           setViewMode('login');
           setEmail(''); setPassword('');
@@ -156,7 +160,7 @@ export default function App() {
 
         const newAdmin: Partial<User> = {
           name: registerName,
-          email: email,
+          email: normalizedEmail,
           password: password,
           role: 'admin',
           title: '同工',

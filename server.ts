@@ -128,10 +128,19 @@ app.get('/api/events', async (req, res) => {
             include: { series: true },
             orderBy: { startDate: 'asc' }
         });
-        const parsed = events.map(e => ({
-            ...e,
-            mealsConfig: JSON.parse(e.mealsConfig as string || '[]')
-        }));
+        const parsed = events.map(e => {
+            let mealsConfig = [];
+            try {
+                mealsConfig = JSON.parse(e.mealsConfig as string || '[]');
+            } catch (err) {
+                console.error(`Failed to parse mealsConfig for event ${e.id}:`, err);
+                mealsConfig = [];
+            }
+            return {
+                ...e,
+                mealsConfig
+            };
+        });
         res.json(parsed);
     } catch (e) {
         console.error(e);
@@ -247,11 +256,25 @@ app.delete('/api/events/:id', async (req, res) => {
 app.get('/api/signups', async (req, res) => {
     try {
         const signups = await prisma.signup.findMany();
-        const parsed = signups.map(s => ({
-            ...s,
-            attendingDays: JSON.parse(s.attendingDays as string || '[]'),
-            meals: JSON.parse(s.meals as string || '[]'),
-        }));
+        const parsed = signups.map(s => {
+            let attendingDays = [];
+            let meals = [];
+            try {
+                attendingDays = JSON.parse(s.attendingDays as string || '[]');
+            } catch (err) {
+                console.error(`Failed to parse attendingDays for signup ${s.id}:`, err);
+            }
+            try {
+                meals = JSON.parse(s.meals as string || '[]');
+            } catch (err) {
+                console.error(`Failed to parse meals for signup ${s.id}:`, err);
+            }
+            return {
+                ...s,
+                attendingDays,
+                meals,
+            };
+        });
         res.json(parsed);
     } catch (e) {
         console.error(e);
