@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite\" \"tsx server.ts\"",
+    "dev": "concurrently \"vite\" \"tsx watch server.ts\"",
     "build": "vite build",
     "preview": "vite preview",
     "db:studio": "prisma studio"
