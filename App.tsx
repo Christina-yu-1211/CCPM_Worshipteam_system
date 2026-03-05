@@ -74,7 +74,7 @@ export default function App() {
     } catch (err) {
       console.error("[App] Failed to load data", err);
       // Show alert to help diagnose production issues
-      alert("資料載入失敗，目前可能無法顯示最新資訊或登入。\n可能是伺服器連線問題，請檢查系統後台或網路。\n錯誤詳細資料: " + err);
+      alert("等等喔~資料載入中...");
     } finally {
       setLoading(false);
     }
@@ -138,7 +138,7 @@ export default function App() {
       }
     } catch (err) {
       console.error("Login component error:", err);
-      alert('登入過程發生錯誤，可能是伺服器連線失敗：' + err);
+      alert('等等喔~資料載入中...');
     }
   };
 
