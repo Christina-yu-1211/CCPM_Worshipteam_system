@@ -20,10 +20,17 @@ export default function App() {
   // --- STATE ---
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('currentUser');
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+    try {
+      const parsed = JSON.parse(saved);
+      return (parsed && parsed.id) ? parsed : null;
+    } catch (e) {
+      return null;
+    }
   });
   const [currentView, setCurrentView] = useState<'main' | 'settings'>('main');
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true); // New loading state
   const [touchStartY, setTouchStartY] = useState(0);
 
   const [users, setUsers] = useState<User[]>([]);
@@ -48,6 +55,8 @@ export default function App() {
 
   // --- DATA LOADING ---
   const loadData = async () => {
+    console.log("[App] Start loading data...");
+    setLoading(true);
     try {
       const [u, e, s, t, se] = await Promise.all([
         api.getUsers(),
@@ -56,15 +65,18 @@ export default function App() {
         api.getTasks(),
         api.getSeries()
       ]);
+      console.log("[App] Data loaded successfully:", { users: u.length, events: e.length });
       setUsers(u);
       setEvents(e);
       setSignups(s);
       setTasks(t);
       setSeries(se);
     } catch (err) {
-      console.error("Failed to load data", err);
+      console.error("[App] Failed to load data", err);
       // Show alert to help diagnose production issues
-      alert("資料載入失敗，目前可能無法顯示最新資訊。\n錯誤訊息: " + err);
+      alert("資料載入失敗，目前可能無法顯示最新資訊或登入。\n可能是伺服器連線問題，請檢查系統後台或網路。\n錯誤詳細資料: " + err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -489,72 +501,81 @@ export default function App() {
             </h1>
             <p className="text-gray-500 text-lg mt-2">{viewMode === 'login' ? '登入以繼續' : '帳號註冊'}</p>
           </div>
-          {/* Login/Register Forms */}
-          {viewMode === 'login' ? (
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div>
-                <label className="block text-lg font-bold text-gray-700 mb-2">Email</label>
-                <input type="text" value={email} onChange={e => setEmail(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 text-lg focus:ring-2 focus:ring-mint-500 outline-none" placeholder="user@example.com" required />
-              </div>
-              <div>
-                <label className="block text-lg font-bold text-gray-700 mb-2">密碼</label>
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 text-lg focus:ring-2 focus:ring-mint-500 outline-none" placeholder="••••••" />
-              </div>
-              <button type="submit" className="w-full py-4 bg-mint-500 hover:bg-mint-600 text-white font-bold text-xl rounded-2xl transition shadow-lg shadow-mint-500/30">
-                登入
-              </button>
-              <div className="text-center mt-6">
-                <button type="button" onClick={() => { setViewMode('register'); setEmail(''); setPassword(''); }} className="text-mint-600 hover:underline font-bold text-lg">
-                  還沒有帳號？立即註冊
-                </button>
-              </div>
-            </form>
+
+          {loading && !users.length ? (
+            <div className="flex flex-col items-center justify-center py-10">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-mint-500 mb-4"></div>
+              <p className="text-gray-500 font-bold">資料載入中...</p>
+            </div>
           ) : (
-            <form onSubmit={handleRegister} className="space-y-6">
-              {/* ROLE TOGGLE */}
-              <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
-                <button type="button" onClick={() => setRegisterRole('volunteer')} className={`flex-1 py-2 rounded-lg font-bold transition ${registerRole === 'volunteer' ? 'bg-white text-mint-600 shadow-sm' : 'text-gray-500'}`}>我是義工</button>
-                <button type="button" onClick={() => setRegisterRole('admin')} className={`flex-1 py-2 rounded-lg font-bold transition ${registerRole === 'admin' ? 'bg-white text-vibrant-500 shadow-sm' : 'text-gray-500'}`}>我是管理員</button>
-              </div>
-
-              {registerRole === 'volunteer' ? (
-                <div>
-                  <label className="block text-lg font-bold text-gray-700 mb-2">選擇您的名字</label>
-                  <p className="text-sm text-gray-400 mb-2">若名單中沒有您的名字，請聯繫管理員建立檔案。</p>
-                  <select value={registerUserId} onChange={e => setRegisterUserId(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 text-lg focus:ring-2 focus:ring-mint-500 outline-none">
-                    <option value="">-- 請選擇 --</option>
-                    {users.filter(u => u.role === 'volunteer' && !u.password).map(u => (
-                      <option key={u.id} value={u.id}>{u.name}</option>
-                    ))}
-                  </select>
-                </div>
+            <>
+              {/* Login/Register Forms */}
+              {viewMode === 'login' ? (
+                <form onSubmit={handleLogin} className="space-y-6">
+                  <div>
+                    <label className="block text-lg font-bold text-gray-700 mb-2">Email</label>
+                    <input type="text" value={email} onChange={e => setEmail(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 text-lg focus:ring-2 focus:ring-mint-500 outline-none" placeholder="user@example.com" required />
+                  </div>
+                  <div>
+                    <label className="block text-lg font-bold text-gray-700 mb-2">密碼</label>
+                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 text-lg focus:ring-2 focus:ring-mint-500 outline-none" placeholder="••••••" />
+                  </div>
+                  <button type="submit" disabled={loading} className="w-full py-4 bg-mint-500 hover:bg-mint-600 text-white font-bold text-xl rounded-2xl transition shadow-lg shadow-mint-500/30 disabled:bg-gray-300 disabled:shadow-none">
+                    {loading ? '請稍候...' : '登入'}
+                  </button>
+                  <div className="text-center mt-6">
+                    <button type="button" onClick={() => { setViewMode('register'); setEmail(''); setPassword(''); }} className="text-mint-600 hover:underline font-bold text-lg">
+                      還沒有帳號？立即註冊
+                    </button>
+                  </div>
+                </form>
               ) : (
-                <div>
-                  <label className="block text-lg font-bold text-gray-700 mb-2">您的姓名</label>
-                  <input type="text" value={registerName} onChange={e => setRegisterName(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 text-lg focus:ring-2 focus:ring-vibrant-500 outline-none" placeholder="請輸入姓名" />
-                  <p className="text-sm text-orange-500 mt-2 font-bold bg-orange-50 p-2 rounded-lg">注意：管理員帳號需經過審核後才能登入。</p>
-                </div>
+                <form onSubmit={handleRegister} className="space-y-6">
+                  {/* ROLE TOGGLE */}
+                  <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+                    <button type="button" onClick={() => setRegisterRole('volunteer')} className={`flex-1 py-2 rounded-lg font-bold transition ${registerRole === 'volunteer' ? 'bg-white text-mint-600 shadow-sm' : 'text-gray-500'}`}>我是義工</button>
+                    <button type="button" onClick={() => setRegisterRole('admin')} className={`flex-1 py-2 rounded-lg font-bold transition ${registerRole === 'admin' ? 'bg-white text-vibrant-500 shadow-sm' : 'text-gray-500'}`}>我是管理員</button>
+                  </div>
+
+                  {registerRole === 'volunteer' ? (
+                    <div>
+                      <label className="block text-lg font-bold text-gray-700 mb-2">選擇您的名字</label>
+                      <p className="text-sm text-gray-400 mb-2">若名單中沒有您的名字，請聯繫管理員建立檔案。</p>
+                      <select value={registerUserId} onChange={e => setRegisterUserId(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 text-lg focus:ring-2 focus:ring-mint-500 outline-none">
+                        <option value="">-- 請選擇 --</option>
+                        {users.filter(u => u.role === 'volunteer' && !u.password).map(u => (
+                          <option key={u.id} value={u.id}>{u.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-lg font-bold text-gray-700 mb-2">您的姓名</label>
+                      <input type="text" value={registerName} onChange={e => setRegisterName(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 text-lg focus:ring-2 focus:ring-vibrant-500 outline-none" placeholder="請輸入姓名" />
+                      <p className="text-sm text-orange-500 mt-2 font-bold bg-orange-50 p-2 rounded-lg">注意：管理員帳號需經過審核後才能登入。</p>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-lg font-bold text-gray-700 mb-2">設定 Email</label>
+                    <input type="text" value={email} onChange={e => setEmail(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 text-lg focus:ring-2 focus:ring-mint-500 outline-none" placeholder="輸入您的常用 Email" required />
+                  </div>
+                  <div>
+                    <label className="block text-lg font-bold text-gray-700 mb-2">設定密碼</label>
+                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 text-lg focus:ring-2 focus:ring-mint-500 outline-none" placeholder="設定您的登入密碼" required />
+                  </div>
+                  <button type="submit" disabled={loading} className="w-full py-4 bg-vibrant-500 hover:bg-vibrant-600 text-white font-bold text-xl rounded-2xl transition shadow-lg shadow-vibrant-500/30 disabled:bg-gray-300 disabled:shadow-none">
+                    {loading ? '處理中...' : (registerRole === 'volunteer' ? '完成註冊' : '送出申請')}
+                  </button>
+                  <div className="text-center mt-6">
+                    <button type="button" onClick={() => { setViewMode('login'); setEmail(''); setPassword(''); }} className="text-gray-500 hover:underline text-lg">
+                      返回登入
+                    </button>
+                  </div>
+                </form>
               )}
-
-              <div>
-                <label className="block text-lg font-bold text-gray-700 mb-2">設定 Email</label>
-                <input type="text" value={email} onChange={e => setEmail(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 text-lg focus:ring-2 focus:ring-mint-500 outline-none" placeholder="輸入您的常用 Email" required />
-              </div>
-              <div>
-                <label className="block text-lg font-bold text-gray-700 mb-2">設定密碼</label>
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 text-lg focus:ring-2 focus:ring-mint-500 outline-none" placeholder="設定您的登入密碼" required />
-              </div>
-              <button type="submit" className="w-full py-4 bg-vibrant-500 hover:bg-vibrant-600 text-white font-bold text-xl rounded-2xl transition shadow-lg shadow-vibrant-500/30">
-                {registerRole === 'volunteer' ? '完成註冊' : '送出申請'}
-              </button>
-              <div className="text-center mt-6">
-                <button type="button" onClick={() => { setViewMode('login'); setEmail(''); setPassword(''); }} className="text-gray-500 hover:underline text-lg">
-                  返回登入
-                </button>
-              </div>
-            </form>
+            </>
           )}
-
 
         </div>
       </div>

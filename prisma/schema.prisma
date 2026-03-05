@@ -39,11 +39,11 @@ model MinistryEvent {
   startTime            String
   location             String
   mealsConfig          String
-  shuttleConfig        String? // This could store driver assignments as JSON string
   isRegistrationOpen   Boolean     @default(true)
   registrationDeadline String
   remarks              String?
   isReportDownloaded   Boolean     @default(false)
+  shuttleConfig        String?
   series               EventSeries @relation(fields: [seriesId], references: [id])
   signups              Signup[]
 }
@@ -64,9 +64,9 @@ model Signup {
   departureTime      String?
   notes              String?
   submissionDate     String
-  earlyArrivalType   String?
-  earlyArrivalStatus String        @default("NONE")
   earlyArrivalReason String?
+  earlyArrivalStatus String        @default("NONE")
+  earlyArrivalType   String?
   event              MinistryEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
   volunteer          User          @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
 }
