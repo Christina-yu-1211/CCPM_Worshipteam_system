@@ -580,8 +580,10 @@ app.delete('/api/tasks/:id', async (req, res) => {
 
 // --- AUTOMATED JOBS (CRON) ---
 
-// Helper to get formatted date string YYYY-MM-DD
-const getDateString = (date: Date) => date.toISOString().split('T')[0];
+// Helper to get formatted date string YYYY-MM-DD in Asia/Taipei timezone
+const getDateString = (date: Date) => {
+    return date.toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' });
+};
 
 const startScheduler = () => {
     console.log('📅 Scheduler started...');
@@ -621,7 +623,7 @@ const startScheduler = () => {
                 }
             }
         }
-    });
+    }, { timezone: 'Asia/Taipei' });
 
     // 2. 邀請未報名義工：活動前 6 天下午 14:00
     cron.schedule('0 14 * * *', async () => {
@@ -661,7 +663,7 @@ const startScheduler = () => {
                 }
             }
         }
-    });
+    }, { timezone: 'Asia/Taipei' });
 
     // 3. 行前通知：活動前 3 天上午 09:00
     cron.schedule('0 9 * * *', async () => {
@@ -709,7 +711,7 @@ const startScheduler = () => {
                 await sendEmail(signup.volunteer.email, subject, html);
             }
         }
-    });
+    }, { timezone: 'Asia/Taipei' });
 
     // 4. 管理員任務逾期提醒 (每日 10:00 AM)
     cron.schedule('0 10 * * *', async () => {
@@ -743,7 +745,7 @@ const startScheduler = () => {
                 }
             }
         }
-    });
+    }, { timezone: 'Asia/Taipei' });
 
     // 5. 防止休眠 (Anti-Hibernation)：每 14 分鐘 Ping 自己一次
     cron.schedule('*/14 * * * *', async () => {
