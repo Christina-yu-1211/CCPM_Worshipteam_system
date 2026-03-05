@@ -63,6 +63,8 @@ export default function App() {
       setSeries(se);
     } catch (err) {
       console.error("Failed to load data", err);
+      // Show alert to help diagnose production issues
+      alert("資料載入失敗，目前可能無法顯示最新資訊。\n錯誤訊息: " + err);
     }
   };
 
@@ -103,23 +105,28 @@ export default function App() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Re-fetch users to ensure latest data
-    const latestUsers = await api.getUsers();
-    setUsers(latestUsers);
+    try {
+      // Re-fetch users to ensure latest data
+      const latestUsers = await api.getUsers();
+      setUsers(latestUsers);
 
-    const normalizedEmail = email.trim().toLowerCase();
-    const user = latestUsers.find(u => u.email === normalizedEmail && u.password === password);
-    if (user) {
-      if (!user.isApproved) {
-        alert('您的帳號尚未經過核心同工核准，請耐心等候或聯繫相關人員。');
-        return;
+      const normalizedEmail = email.trim().toLowerCase();
+      const user = latestUsers.find(u => u.email === normalizedEmail && u.password === password);
+      if (user) {
+        if (!user.isApproved) {
+          alert('您的帳號尚未經過核心同工核准，請耐心等候或聯繫相關人員。');
+          return;
+        }
+        setCurrentUser(user);
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        // Ensure all data is loaded for the newly logged-in user
+        await loadData();
+      } else {
+        alert('登入失敗：Email 或密碼錯誤，或者您尚未註冊。');
       }
-      setCurrentUser(user);
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      // Ensure all data is loaded for the newly logged-in user
-      await loadData();
-    } else {
-      alert('登入失敗：Email 或密碼錯誤，或者您尚未註冊。');
+    } catch (err) {
+      console.error("Login component error:", err);
+      alert('登入過程發生錯誤，可能是伺服器連線失敗：' + err);
     }
   };
 
