@@ -771,7 +771,7 @@ const startScheduler = () => {
     }, { timezone: 'Asia/Taipei' });
 
     // 5. 防止休眠 (Anti-Hibernation)：每 14 分鐘 Ping 自己一次
-    cron.schedule('*/14 * * * *', async () => {
+    cron.schedule('*/10 * * * *', async () => {
         try {
             console.log('Self-ping: Keeping server awake...');
             const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;

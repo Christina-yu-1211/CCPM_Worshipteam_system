@@ -54,9 +54,28 @@ export default function App() {
   const [showBadge, setShowBadge] = useState<{ count: number, streak: number } | null>(null);
 
   // --- DATA LOADING ---
-  const loadData = async () => {
+
+  // 快取 key
+  const CACHE_KEY = 'app_data_cache';
+
+  // 從快取初始化（讓畫面秒開）
+  const initFromCache = () => {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return;
+      const { users: u, events: e, signups: s, tasks: t, series: se } = JSON.parse(raw);
+      if (u) setUsers(u);
+      if (e) setEvents(e);
+      if (s) setSignups(s);
+      if (t) setTasks(t);
+      if (se) setSeries(se);
+      console.log("[App] Loaded from cache instantly");
+    } catch (_) { }
+  };
+
+  const loadData = async (silent = false) => {
     console.log("[App] Start loading data...");
-    setLoading(true);
+    if (!silent) setLoading(true);
     try {
       const [u, e, s, t, se] = await Promise.all([
         api.getUsers(),
@@ -71,23 +90,25 @@ export default function App() {
       setSignups(s);
       setTasks(t);
       setSeries(se);
+      // 存快取
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ users: u, events: e, signups: s, tasks: t, series: se }));
     } catch (err) {
       console.error("[App] Failed to load data", err);
-      // Show alert to help diagnose production issues
-      alert("等等喔~資料載入中...");
+      if (!silent) alert("等等喔~資料載入中...");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    initFromCache();       // 立刻顯示快取（0 延遲）
+    loadData();            // 背景拉新資料，loading spinner 照跑
   }, []);
 
-  // 換頁籤時自動刷新
+  // 換頁籤時自動刷新（silent，不佔 loading state）
   useEffect(() => {
     if (currentUser) {
-      loadData();
+      loadData(true);
     }
   }, [currentView]);
 
