@@ -24,16 +24,41 @@ app.use(express.json());
 // --- INITIAL DATA (Sequential to save connections) ---
 app.get('/api/init', async (req, res) => {
     try {
+        console.log("[Backend] Initializing data...");
         const users = await prisma.user.findMany();
-        const events = await prisma.ministryEvent.findMany({ include: { series: true } });
-        const signups = await prisma.signup.findMany();
+        const rawEvents = await prisma.ministryEvent.findMany({ include: { series: true } });
+        const rawSignups = await prisma.signup.findMany();
         const tasks = await prisma.adminTask.findMany();
         const series = await prisma.eventSeries.findMany();
+
+        // Map and parse stringified JSON fields
+        const events = rawEvents.map(e => {
+            let mealsConfig = [];
+            try {
+                mealsConfig = JSON.parse(e.mealsConfig as string || '[]');
+            } catch (err) {
+                console.error(`Failed to parse mealsConfig for event ${e.id}`);
+            }
+            return { ...e, mealsConfig };
+        });
+
+        const signups = rawSignups.map(s => {
+            let attendingDays = [];
+            let meals = [];
+            try {
+                attendingDays = JSON.parse(s.attendingDays as string || '[]');
+                meals = JSON.parse(s.meals as string || '[]');
+            } catch (err) {
+                console.error(`Failed to parse signup ${s.id}`);
+            }
+            return { ...s, attendingDays, meals };
+        });
         
+        console.log("[Backend] Init data successful");
         res.json({ users, events, signups, tasks, series });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: '初始化資料失敗' });
+    } catch (e: any) {
+        console.error("[Backend] Init error:", e.message);
+        res.status(500).json({ error: '初始化資料失敗', details: e.message });
     }
 });
 
