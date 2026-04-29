@@ -285,10 +285,6 @@ export default function App() {
   };
 
   const handleDeleteSignup = async (id: string) => {
-    if (id.startsWith('temp-')) {
-      alert('正在處理中，請稍候...');
-      return;
-    }
     const oldSignups = [...signups];
     setSignups(prev => prev.filter(s => s.id !== id));
     try {
@@ -301,10 +297,6 @@ export default function App() {
   };
 
   const handleUpdateSignup = async (id: string, data: Partial<Signup>) => {
-    if (id.startsWith('temp-')) {
-      alert('正在處理中，請稍候...');
-      return;
-    }
     try {
       setSignups(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
       await api.updateSignup(id, data);
@@ -376,10 +368,6 @@ export default function App() {
       }
     },
     updateEvent: async (evt: MinistryEvent) => {
-      if (evt.id.startsWith('temp-')) {
-        alert('活動正在建立中，請稍候再試...');
-        return;
-      }
       // Optimistic Update
       const oldEvents = [...events];
       setEvents(prev => prev.map(e => e.id === evt.id ? evt : e));
@@ -435,10 +423,6 @@ export default function App() {
       }
     },
     updateTask: async (task: AdminTask) => {
-      if (task.id.startsWith('temp-')) {
-        alert('任務正在建立中，請稍候再試...');
-        return;
-      }
       // Optimistic Update
       const oldTasks = [...tasks];
       setTasks(prev => prev.map(t => t.id === task.id ? task : t));
@@ -453,10 +437,6 @@ export default function App() {
       }
     },
     deleteTask: async (id: string) => {
-      if (id.startsWith('temp-')) {
-        alert('任務正在建立中，請稍候再試...');
-        return;
-      }
       if (confirm('確定刪除此任務？')) {
         const oldTasks = [...tasks];
         // Optimistic Update

@@ -150,7 +150,7 @@ app.get('/api/events', async (req, res) => {
 
 app.post('/api/events', async (req, res) => {
     try {
-        const { mealsConfig, ...rest } = req.body;
+        const { id: ignoredId, mealsConfig, ...rest } = req.body;
         // Don't pass 'series' object if provided, prisma expects seriesId
         // rest should only contain scalar fields + seriesId
         const { series, ...dataToSave } = rest;
@@ -581,7 +581,8 @@ app.get('/api/tasks', async (req, res) => {
 
 app.post('/api/tasks', async (req, res) => {
     try {
-        const task = await prisma.adminTask.create({ data: req.body });
+        const { id: ignoredId, ...data } = req.body;
+        const task = await prisma.adminTask.create({ data });
         res.json(task);
     } catch (e) {
         console.error(e);
