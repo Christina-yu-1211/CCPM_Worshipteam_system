@@ -78,13 +78,8 @@ export default function App() {
     if (!silent && events.length === 0) setLoading(true);
     try {
       console.log("[App] Start loading data...");
-      const [u, e, s, t, se] = await Promise.all([
-        api.getUsers(),
-        api.getEvents(),
-        api.getSignups(),
-        api.getTasks(),
-        api.getSeries()
-      ]);
+      const { users: u, events: e, signups: s, tasks: t, series: se } = await api.getInitData();
+      
       console.log("[App] Data loaded successfully:", { users: u.length, events: e.length });
       setUsers(u);
       setEvents(e);

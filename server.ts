@@ -21,6 +21,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// --- INITIAL DATA (Sequential to save connections) ---
+app.get('/api/init', async (req, res) => {
+    try {
+        const users = await prisma.user.findMany();
+        const events = await prisma.ministryEvent.findMany({ include: { series: true } });
+        const signups = await prisma.signup.findMany();
+        const tasks = await prisma.adminTask.findMany();
+        const series = await prisma.eventSeries.findMany();
+        
+        res.json({ users, events, signups, tasks, series });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: '初始化資料失敗' });
+    }
+});
+
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, 'dist')));
 

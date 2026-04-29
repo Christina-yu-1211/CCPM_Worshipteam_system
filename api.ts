@@ -22,6 +22,15 @@ const fetchJson = async (endpoint: string, options: RequestInit = {}) => {
 };
 
 export const api = {
+    // --- INITIAL DATA ---
+    getInitData: () => fetchJson('/init') as Promise<{
+        users: User[],
+        events: MinistryEvent[],
+        signups: Signup[],
+        tasks: AdminTask[],
+        series: EventSeries[]
+    }>,
+
     // --- USERS ---
     getUsers: () => fetchJson('/users') as Promise<User[]>,
     createUser: (data: Partial<User>) => fetchJson('/users', { method: 'POST', body: JSON.stringify(data) }) as Promise<User>,
