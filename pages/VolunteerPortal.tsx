@@ -866,56 +866,56 @@ export const VolunteerPortal: React.FC<VolunteerPortalProps> = ({ user, users, e
                </div>
             )
          }
-      </div >
 
-      {/* --- PARTICIPANTS MODAL --- */}
-      {
-         viewingParticipantsId && (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 animate-fade-in">
-               <div className="bg-white rounded-[2rem] p-6 sm:p-8 max-w-sm w-full shadow-2xl animate-pop border border-gray-100">
-                  <div className="flex justify-between items-center mb-6">
-                     <div>
-                        <h2 className="text-xl font-extrabold text-gray-800">已報名同工</h2>
-                        <p className="text-sm text-gray-500 font-bold">{events.find(e => e.id === viewingParticipantsId)?.title}</p>
+         {/* --- PARTICIPANTS MODAL --- */}
+         {
+            viewingParticipantsId && (
+               <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 animate-fade-in">
+                  <div className="bg-white rounded-[2rem] p-6 sm:p-8 max-w-sm w-full shadow-2xl animate-pop border border-gray-100">
+                     <div className="flex justify-between items-center mb-6">
+                        <div>
+                           <h2 className="text-xl font-extrabold text-gray-800">已報名同工</h2>
+                           <p className="text-sm text-gray-500 font-bold">{events.find(e => e.id === viewingParticipantsId)?.title}</p>
+                        </div>
+                        <button onClick={() => setViewingParticipantsId(null)} className="p-2 hover:bg-gray-100 rounded-full transition">
+                           <X className="text-gray-400 hover:text-gray-600" />
+                        </button>
                      </div>
-                     <button onClick={() => setViewingParticipantsId(null)} className="p-2 hover:bg-gray-100 rounded-full transition">
-                        <X className="text-gray-400 hover:text-gray-600" />
+                     
+                     <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                        {(() => {
+                           const eventSignups = signups.filter(s => s.eventId === viewingParticipantsId);
+                           if (eventSignups.length === 0) return <p className="text-gray-400 text-center py-6 italic">目前尚無人報名</p>;
+                           
+                           return eventSignups.map(s => {
+                              const v = users.find(u => u.id === s.volunteerId);
+                              return (
+                                 <div key={s.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100">
+                                    <div className="w-10 h-10 bg-mint-100 text-mint-600 rounded-full flex items-center justify-center font-black text-sm">
+                                       {v?.name.slice(-2)}
+                                    </div>
+                                    <div className="flex flex-col">
+                                       <span className="font-bold text-gray-800">{v?.name || '未知同工'}</span>
+                                       <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+                                          {s.attendingDays.length} 天服事
+                                       </span>
+                                    </div>
+                                 </div>
+                              );
+                           });
+                        })()}
+                     </div>
+                     
+                     <button 
+                        onClick={() => setViewingParticipantsId(null)}
+                        className="w-full mt-6 py-4 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition"
+                     >
+                        關閉
                      </button>
                   </div>
-                  
-                  <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
-                     {(() => {
-                        const eventSignups = signups.filter(s => s.eventId === viewingParticipantsId);
-                        if (eventSignups.length === 0) return <p className="text-gray-400 text-center py-6 italic">目前尚無人報名</p>;
-                        
-                        return eventSignups.map(s => {
-                           const v = users.find(u => u.id === s.volunteerId);
-                           return (
-                              <div key={s.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100">
-                                 <div className="w-10 h-10 bg-mint-100 text-mint-600 rounded-full flex items-center justify-center font-black text-sm">
-                                    {v?.name.slice(-2)}
-                                 </div>
-                                 <div className="flex flex-col">
-                                    <span className="font-bold text-gray-800">{v?.name || '未知同工'}</span>
-                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
-                                       {s.attendingDays.length} 天服事
-                                    </span>
-                                 </div>
-                              </div>
-                           );
-                        });
-                     })()}
-                  </div>
-                  
-                  <button 
-                     onClick={() => setViewingParticipantsId(null)}
-                     className="w-full mt-6 py-4 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition"
-                  >
-                     關閉
-                  </button>
                </div>
-            </div>
-         )
-      }
+            )
+         }
+      </div >
    );
 };
