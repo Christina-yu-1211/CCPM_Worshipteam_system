@@ -74,9 +74,10 @@ export default function App() {
   };
 
   const loadData = async (silent = false) => {
-    console.log("[App] Start loading data...");
-    if (!silent) setLoading(true);
+    // 只有在完全沒資料時才顯示全螢幕 Loading
+    if (!silent && events.length === 0) setLoading(true);
     try {
+      console.log("[App] Start loading data...");
       const [u, e, s, t, se] = await Promise.all([
         api.getUsers(),
         api.getEvents(),
@@ -94,7 +95,7 @@ export default function App() {
       localStorage.setItem(CACHE_KEY, JSON.stringify({ users: u, events: e, signups: s, tasks: t, series: se }));
     } catch (err) {
       console.error("[App] Failed to load data", err);
-      if (!silent) alert("等等喔~資料載入中...");
+      // 移除惱人的 alert，改為靜默處理
     } finally {
       if (!silent) setLoading(false);
     }
@@ -138,9 +139,11 @@ export default function App() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       // Re-fetch users to ensure latest data
       const latestUsers = await api.getUsers();
+      // DEBUG: alert(`抓取到 ${latestUsers.length} 位使用者`);
       setUsers(latestUsers);
 
       const normalizedEmail = email.trim().toLowerCase();
@@ -159,7 +162,9 @@ export default function App() {
       }
     } catch (err) {
       console.error("Login component error:", err);
-      alert('等等喔~資料載入中...');
+      alert('登入時發生錯誤，請檢查網路連線後再試一次。');
+    } finally {
+      setLoading(false);
     }
   };
 
