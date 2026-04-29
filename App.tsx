@@ -215,8 +215,8 @@ export default function App() {
         setEmail(''); setPassword(''); setRegisterName('');
         loadData();
       }
-    } catch (err) {
-      alert(`註冊失敗: ${err}`);
+    } catch (err: any) {
+      alert(`註冊失敗: ${err.message || err}`);
     }
   };
 
@@ -277,32 +277,40 @@ export default function App() {
       }
       // Silently refresh in background
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       console.error('報名或更新失敗:', err);
-      // alert('報名或更新失敗: ' + err); // Removed per user request
+      alert('操作失敗: ' + (err.message || '請稍後再試'));
       loadData(); // Revert on actual error
     }
   };
 
   const handleDeleteSignup = async (id: string) => {
+    if (id.startsWith('temp-')) {
+      alert('正在處理中，請稍候...');
+      return;
+    }
     const oldSignups = [...signups];
     setSignups(prev => prev.filter(s => s.id !== id));
     try {
       await api.deleteSignup(id);
-      loadData();
-    } catch (err) {
+      await loadData(true);
+    } catch (err: any) {
       setSignups(oldSignups);
-      alert('取消報名失敗: ' + err);
+      alert('取消報名失敗: ' + (err.message || '未知錯誤'));
     }
   };
 
   const handleUpdateSignup = async (id: string, data: Partial<Signup>) => {
+    if (id.startsWith('temp-')) {
+      alert('正在處理中，請稍候...');
+      return;
+    }
     try {
       setSignups(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
       await api.updateSignup(id, data);
-      loadData();
-    } catch (err) {
-      alert('更新失敗: ' + err);
+      await loadData(true);
+    } catch (err: any) {
+      alert('更新失敗: ' + (err.message || '未知錯誤'));
       loadData();
     }
   };
@@ -325,9 +333,9 @@ export default function App() {
         await api.deleteSeries(data.id);
       }
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       setSeries(oldSeries);
-      alert('操作失敗');
+      alert('操作失敗: ' + (err.message || '未知錯誤'));
     }
   };
 
@@ -362,21 +370,25 @@ export default function App() {
         const created = await api.createEvent(newEvt);
         setEvents(prev => prev.map(e => e.id === tempId ? created : e));
         loadData();
-      } catch (err) {
+      } catch (err: any) {
         setEvents(prev => prev.filter(e => e.id !== tempId));
-        alert('新增活動失敗');
+        alert('新增活動失敗: ' + (err.message || '未知錯誤'));
       }
     },
     updateEvent: async (evt: MinistryEvent) => {
+      if (evt.id.startsWith('temp-')) {
+        alert('活動正在建立中，請稍候再試...');
+        return;
+      }
       // Optimistic Update
       const oldEvents = [...events];
       setEvents(prev => prev.map(e => e.id === evt.id ? evt : e));
       try {
         await api.updateEvent(evt.id, evt);
-        loadData();
-      } catch (err) {
+        await loadData(true);
+      } catch (err: any) {
         setEvents(oldEvents);
-        alert('更新活動失敗');
+        alert('更新活動失敗: ' + (err.message || '未知錯誤'));
       }
     },
     markReportDownloaded: async (eventId: string) => {
@@ -399,10 +411,10 @@ export default function App() {
         try {
           await api.deleteEvent(id);
           loadData();
-        } catch (err) {
+        } catch (err: any) {
           setEvents(oldEvents);
           setSignups(oldSignups);
-          alert('刪除失敗');
+          alert('刪除失敗: ' + (err.message || '未知錯誤'));
         }
       }
     },
@@ -416,13 +428,17 @@ export default function App() {
         const created = await api.createTask(task);
         // Replace temp task with real one from server
         setTasks(prev => prev.map(t => t.id === tempId ? created : t));
-      } catch (err) {
+      } catch (err: any) {
         // Rollback on failure
         setTasks(prev => prev.filter(t => t.id !== tempId));
-        alert('新增任務失敗');
+        alert('新增任務失敗: ' + (err.message || '未知錯誤'));
       }
     },
     updateTask: async (task: AdminTask) => {
+      if (task.id.startsWith('temp-')) {
+        alert('任務正在建立中，請稍候再試...');
+        return;
+      }
       // Optimistic Update
       const oldTasks = [...tasks];
       setTasks(prev => prev.map(t => t.id === task.id ? task : t));
@@ -430,13 +446,17 @@ export default function App() {
       try {
         await api.updateTask(task.id, task);
         // No need to reload all data
-      } catch (err) {
+      } catch (err: any) {
         // Rollback
         setTasks(oldTasks);
-        console.error('Update task failed', err);
+        alert('更新任務失敗: ' + (err.message || '未知錯誤'));
       }
     },
     deleteTask: async (id: string) => {
+      if (id.startsWith('temp-')) {
+        alert('任務正在建立中，請稍候再試...');
+        return;
+      }
       if (confirm('確定刪除此任務？')) {
         const oldTasks = [...tasks];
         // Optimistic Update
@@ -444,10 +464,10 @@ export default function App() {
 
         try {
           await api.deleteTask(id);
-        } catch (err) {
+        } catch (err: any) {
           // Rollback
           setTasks(oldTasks);
-          alert('刪除失敗');
+          alert('刪除任務失敗: ' + (err.message || '未知錯誤'));
         }
       }
     },

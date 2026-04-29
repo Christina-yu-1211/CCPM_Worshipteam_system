@@ -72,7 +72,7 @@ app.delete('/api/users/:id', async (req, res) => {
         res.json({ success: true });
     } catch (e) {
         console.error(e);
-        res.status(400).json({ error: '新增活動系列失敗' });
+        res.status(400).json({ error: '刪除使用者失敗' });
     }
 });
 
@@ -212,9 +212,17 @@ app.post('/api/events', async (req, res) => {
 
 app.put('/api/events/:id', async (req, res) => {
     try {
-        const { id: _, series: __, signups: ___, mealsConfig, ...rest } = req.body;
+        console.log(`[Backend] Updating event ${req.params.id}. Body keys:`, Object.keys(req.body));
+        
+        // 1. Check if event exists first
+        const existing = await prisma.ministryEvent.findUnique({ where: { id: req.params.id } });
+        if (!existing) {
+            console.error(`[Backend] Event ${req.params.id} not found.`);
+            return res.status(404).json({ error: '找不到該活動', details: '活動 ID 可能無效或已被刪除' });
+        }
 
-        // Strictly pick only fields that exist in the schema
+        const { id: _, series: __, signups: ___, mealsConfig, ...rest } = req.body;
+        // ... (rest of the logic)
         const allowedFields = [
             'seriesId', 'title', 'startDate', 'endDate', 'startTime',
             'location', 'isRegistrationOpen', 'registrationDeadline',
@@ -235,10 +243,15 @@ app.put('/api/events/:id', async (req, res) => {
                 mealsConfig: mealsConfig ? JSON.stringify(mealsConfig) : undefined
             },
         });
+        console.log(`[Backend] Event ${req.params.id} updated successfully.`);
         res.json(event);
-    } catch (e) {
-        console.error('Update Event Error:', e);
-        res.status(400).json({ error: '更新活動失敗' });
+    } catch (e: any) {
+        console.error('Update Event Error Detail:', e);
+        res.status(400).json({ 
+            error: '更新活動失敗', 
+            details: e.message || '未知錯誤',
+            code: e.code 
+        });
     }
 });
 
@@ -572,7 +585,7 @@ app.post('/api/tasks', async (req, res) => {
         res.json(task);
     } catch (e) {
         console.error(e);
-        res.status(400).json({ error: '報名失敗' });
+        res.status(400).json({ error: '新增任務失敗' });
     }
 });
 
@@ -595,7 +608,7 @@ app.delete('/api/tasks/:id', async (req, res) => {
         res.json({ success: true });
     } catch (e) {
         console.error(e);
-        res.status(400).json({ error: '更新報名失敗' });
+        res.status(400).json({ error: '刪除任務失敗' });
     }
 });
 

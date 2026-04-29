@@ -15,7 +15,8 @@ const fetchJson = async (endpoint: string, options: RequestInit = {}) => {
     });
     if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `Request failed: ${res.statusText}`);
+        const msg = err.details ? `${err.error}: ${err.details}` : (err.error || `Request failed: ${res.statusText}`);
+        throw new Error(msg);
     }
     return res.json();
 };

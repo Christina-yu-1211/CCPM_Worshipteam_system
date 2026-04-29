@@ -98,6 +98,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Series Form
   const [seriesForm, setSeriesForm] = useState<Partial<EventSeries>>({ name: '', color: '#10B981' });
   const [isEditingSeries, setIsEditingSeries] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
 
   // Helpers
@@ -159,18 +160,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setShowEventModal(true);
   };
 
-  const handleEventSubmit = () => {
+  const handleEventSubmit = async () => {
     if (!eventForm.title || !eventForm.startDate || !eventForm.endDate) return alert('請填寫完整資訊');
+    if (isSaving) return;
 
-    const payload: any = { ...eventForm };
-    if (isEditingEvent) {
-      onUpdateEvent(payload);
-    } else {
-      delete payload.id;
-      onAddEvent(payload);
+    setIsSaving(true);
+    try {
+      const payload: any = { ...eventForm };
+      if (isEditingEvent) {
+        await onUpdateEvent(payload);
+      } else {
+        delete payload.id;
+        await onAddEvent(payload);
+      }
+      setShowEventModal(false);
+    } catch (err) {
+      // Error handled by parent alerts
+    } finally {
+      setIsSaving(false);
     }
-
-    setShowEventModal(false);
   };
 
   const handleDeleteRequest = (type: 'event' | 'series' | 'user', id: string, name: string) => {
@@ -1213,8 +1221,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <textarea className="w-full p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold h-24" value={eventForm.remarks || ''} onChange={e => setEventForm({ ...eventForm, remarks: e.target.value })} placeholder="例如：請自備水杯..." />
                 </div>
 
-                <button onClick={handleEventSubmit} className="w-full py-4 bg-mint-500 text-white font-black rounded-xl hover:bg-mint-600 transition">
-                  {isEditingEvent ? '儲存變更' : '建立活動'}
+                <button 
+                  onClick={handleEventSubmit} 
+                  disabled={isSaving}
+                  className={`w-full py-4 text-white font-black rounded-xl transition ${isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-mint-500 hover:bg-mint-600'}`}
+                >
+                  {isSaving ? '處理中...' : (isEditingEvent ? '儲存變更' : '建立活動')}
                 </button>
               </div>
             </div>
