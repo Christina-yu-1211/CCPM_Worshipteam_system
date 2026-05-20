@@ -1,61 +1,54 @@
+import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
 dotenv.config();
 
 const OAuth2 = google.auth.OAuth2;
 
-const createOAuthClient = () => {
+const createTransporter = async () => {
     const oauth2Client = new OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
-        "https://developers.google.com/oauthplayground" // Redirect URL
+        'https://developers.google.com/oauthplayground',
     );
 
     oauth2Client.setCredentials({
-        refresh_token: process.env.GMAIL_REFRESH_TOKEN
+        refresh_token: process.env.GMAIL_REFRESH_TOKEN,
     });
 
-    return oauth2Client;
+    const { token: accessToken } = await oauth2Client.getAccessToken();
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            type: 'OAuth2',
+            user: process.env.EMAIL_USER || 'ministry.secretar.office@gmail.com',
+            clientId: process.env.GMAIL_CLIENT_ID,
+            clientSecret: process.env.GMAIL_CLIENT_SECRET,
+            refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+            accessToken: accessToken ?? undefined,
+        },
+    });
+
+    return transporter;
 };
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
     try {
-        const oauth2Client = createOAuthClient();
-        const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+        const transporter = await createTransporter();
+        const fromEmail = process.env.EMAIL_USER || 'ministry.secretar.office@gmail.com';
 
-        // Construct MIME message
-        const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
-        const messageParts = [
-            `To: ${to}`,
-            'Content-Type: text/html; charset=utf-8',
-            'MIME-Version: 1.0',
-            `Subject: ${utf8Subject}`,
-            '',
-            html
-        ];
-        const message = messageParts.join('\n');
-
-        // Encode the message to Base64URL
-        const encodedMessage = Buffer.from(message)
-            .toString('base64')
-            .replace(/\+/g, '-')
-            .replace(/\//g, '_')
-            .replace(/=+$/, '');
-
-        const res = await gmail.users.messages.send({
-            userId: 'me',
-            requestBody: {
-                raw: encodedMessage,
-            },
+        const info = await transporter.sendMail({
+            from: `"祭壇小幫手" <${fromEmail}>`,
+            to,
+            subject,
+            html,
         });
 
-        console.log(`[Email] ✅ Sent via Gmail API to ${to}. ID: ${res.data.id}`);
-        return { success: true, data: res.data };
+        console.log(`[Email] ✅ Sent via Gmail API to ${to}. ID: ${info.messageId}`);
+        return { success: true, data: info };
     } catch (error: any) {
         console.error(`[Email] ❌ Failed to send via Gmail API to ${to}:`, error.message);
-        if (error.response) {
-            console.error('Gmail API Error Details:', JSON.stringify(error.response.data, null, 2));
-        }
         return { success: false, error };
     }
 };
