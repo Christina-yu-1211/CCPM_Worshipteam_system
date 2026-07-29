@@ -65,14 +65,9 @@ export const isEventPast = (endDateStr: string): boolean => {
 
 // --- LOGIC UTILS ---
 
-export const isLunchLocked = (eventStartDateStr: string): boolean => {
-  const eventDate = new Date(eventStartDateStr);
-  const now = new Date();
-  const deadline = new Date(eventDate);
-  deadline.setDate(eventDate.getDate() - 3);
-  deadline.setHours(7, 30, 0, 0);
-  return now > deadline;
-};
+// 餐食登記不再設截止時間，義工可隨時修改。
+// 保留此函式讓呼叫端維持原樣；若日後要恢復截止規則，改回時間比較即可。
+export const isLunchLocked = (_eventStartDateStr: string): boolean => false;
 
 // Get Start and End date of current season (Q1, Q2, Q3, Q4)
 export const getCurrentSeasonRange = () => {
