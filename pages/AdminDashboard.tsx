@@ -1124,15 +1124,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <h2 className="text-2xl font-extrabold text-gray-800">{isEditingEvent ? '編輯活動' : '新增活動'}</h2>
                 <button onClick={() => setShowEventModal(false)}><X className="text-gray-400 hover:text-gray-600" /></button>
               </div>
-              <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-5 max-h-[70vh] overflow-y-auto overflow-x-hidden pr-2 custom-scrollbar">
                 {/* Basic Info */}
                 <div>
                   <label className="block text-gray-500 text-sm font-bold mb-1">系列與標題</label>
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <select className="w-full sm:w-1/3 p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold outline-none focus:ring-2 focus:ring-mint-300" value={eventForm.seriesId} onChange={e => setEventForm({ ...eventForm, seriesId: e.target.value })}>
+                    <select className="w-full sm:w-auto sm:flex-1 min-w-0 p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold outline-none focus:ring-2 focus:ring-mint-300" value={eventForm.seriesId} onChange={e => setEventForm({ ...eventForm, seriesId: e.target.value })}>
                       {series.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
-                    <input className="w-full sm:w-2/3 p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold outline-none focus:ring-2 focus:ring-mint-300" placeholder="活動標題" value={eventForm.title} onChange={e => setEventForm({ ...eventForm, title: e.target.value })} />
+                    <input className="w-full sm:w-auto sm:flex-[2] min-w-0 p-3 bg-gray-50 rounded-xl border-2 border-gray-200 font-bold outline-none focus:ring-2 focus:ring-mint-300" placeholder="活動標題" value={eventForm.title} onChange={e => setEventForm({ ...eventForm, title: e.target.value })} />
                   </div>
                 </div>
 
@@ -1140,18 +1140,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div>
                   <label className="block text-gray-500 text-sm font-bold mb-1">活動日期</label>
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="text-[10px] uppercase font-black text-gray-400 ml-1 mb-0.5">開始</div>
                       <div className="relative flex items-center bg-gray-50 rounded-xl border-2 border-gray-200 focus-within:ring-2 focus-within:ring-mint-300 transition-all">
-                        <Calendar size={16} className="ml-3 text-gray-400 pointer-events-none" />
-                        <input type="date" className="w-full p-3 bg-transparent border-none outline-none font-bold text-gray-700" value={eventForm.startDate} onChange={e => setEventForm({ ...eventForm, startDate: e.target.value })} />
+                        <Calendar size={16} className="ml-3 shrink-0 text-gray-400 pointer-events-none" />
+                        <input type="date" className="w-full min-w-0 p-3 bg-transparent border-none outline-none font-bold text-gray-700" value={eventForm.startDate} onChange={e => setEventForm({ ...eventForm, startDate: e.target.value })} />
                       </div>
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="text-[10px] uppercase font-black text-gray-400 ml-1 mb-0.5">結束</div>
                       <div className="relative flex items-center bg-gray-50 rounded-xl border-2 border-gray-200 focus-within:ring-2 focus-within:ring-mint-300 transition-all">
-                        <Calendar size={16} className="ml-3 text-gray-400 pointer-events-none" />
-                        <input type="date" className="w-full p-3 bg-transparent border-none outline-none font-bold text-gray-700" value={eventForm.endDate} onChange={e => setEventForm({ ...eventForm, endDate: e.target.value })} />
+                        <Calendar size={16} className="ml-3 shrink-0 text-gray-400 pointer-events-none" />
+                        <input type="date" className="w-full min-w-0 p-3 bg-transparent border-none outline-none font-bold text-gray-700" value={eventForm.endDate} onChange={e => setEventForm({ ...eventForm, endDate: e.target.value })} />
                       </div>
                     </div>
                   </div>
@@ -1209,8 +1209,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div>
                     <label className="block text-gray-500 text-xs font-bold mb-1">截止日期</label>
                     <div className="relative flex items-center bg-white rounded-lg border border-orange-200 focus-within:ring-2 focus-within:ring-orange-300 transition-all">
-                      <Calendar size={14} className="ml-2.5 text-orange-400 pointer-events-none" />
-                      <input type="date" className="w-full p-2 bg-transparent border-none outline-none text-sm font-bold text-gray-700" value={eventForm.registrationDeadline} onChange={e => setEventForm({ ...eventForm, registrationDeadline: e.target.value })} />
+                      <Calendar size={14} className="ml-2.5 shrink-0 text-orange-400 pointer-events-none" />
+                      <input type="date" className="w-full min-w-0 p-2 bg-transparent border-none outline-none text-sm font-bold text-gray-700" value={eventForm.registrationDeadline} onChange={e => setEventForm({ ...eventForm, registrationDeadline: e.target.value })} />
                     </div>
                   </div>
                 </div>
