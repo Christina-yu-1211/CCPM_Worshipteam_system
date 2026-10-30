@@ -31,6 +31,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState<'main' | 'settings'>('main');
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true); // New loading state
+  const [isStale, setIsStale] = useState(false); // 目前畫面是快取資料（尚未成功取得最新資料）
   const [touchStartY, setTouchStartY] = useState(0);
 
   const [users, setUsers] = useState<User[]>([]);
@@ -57,13 +58,21 @@ export default function App() {
 
   // 快取 key
   const CACHE_KEY = 'app_data_cache';
+  // 快取有效期限：超過就丟棄，避免舊裝置一直顯示已刪除的資料
+  const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 
   // 從快取初始化（讓畫面秒開）
   const initFromCache = () => {
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (!raw) return;
-      const { users: u, events: e, signups: s, tasks: t, series: se } = JSON.parse(raw);
+      const { savedAt, users: u, events: e, signups: s, tasks: t, series: se } = JSON.parse(raw);
+      // 舊格式（無時間戳）或已過期的快取直接清除
+      if (!savedAt || Date.now() - savedAt > CACHE_TTL_MS) {
+        localStorage.removeItem(CACHE_KEY);
+        return;
+      }
+      setIsStale(true);
       if (u) setUsers(u);
       if (e) setEvents(e);
       if (s) setSignups(s);
@@ -86,11 +95,14 @@ export default function App() {
       setSignups(s);
       setTasks(t);
       setSeries(se);
+      setIsStale(false);
       // 存快取
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ users: u, events: e, signups: s, tasks: t, series: se }));
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), users: u, events: e, signups: s, tasks: t, series: se }));
+      } catch (_) { }
     } catch (err) {
       console.error("[App] Failed to load data", err);
-      // 移除惱人的 alert，改為靜默處理
+      // 移除惱人的 alert，改為靜默處理；畫面上若有資料即為快取，顯示離線提示
     } finally {
       if (!silent) setLoading(false);
     }
@@ -674,6 +686,14 @@ export default function App() {
             </svg>
             刷新中...
           </div>
+        </div>
+      )}
+
+      {/* 離線/快取資料提示 */}
+      {isStale && !loading && !refreshing && (
+        <div className="fixed top-0 left-0 right-0 bg-amber-500 text-white text-center py-2 px-4 z-50 text-sm font-bold">
+          目前顯示的是暫存資料，可能不是最新。
+          <button onClick={handleRefresh} className="underline ml-2">重新載入</button>
         </div>
       )}
 
