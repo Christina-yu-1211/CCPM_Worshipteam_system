@@ -24,11 +24,12 @@ interface AdminDashboardProps {
   onSeriesAction?: (action: 'add' | 'edit' | 'delete', data: any) => void;
   onTriggerEmailCheck?: () => void;
   onUpdateSignup?: (id: string, data: Partial<Signup>) => Promise<void>;
+  onDeleteSignup?: (id: string) => Promise<void>;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   currentUser, events, signups, series, users, tasks,
-  onAddEvent, onUpdateEvent, onDeleteEvent, onUpdateTask, onAddTask, onDeleteTask, onManageUser, onSeriesAction, onTriggerEmailCheck, onUpdateSignup
+  onAddEvent, onUpdateEvent, onDeleteEvent, onUpdateTask, onAddTask, onDeleteTask, onManageUser, onSeriesAction, onTriggerEmailCheck, onUpdateSignup, onDeleteSignup
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'users' | 'tasks' | 'reports'>('overview');
 
@@ -492,6 +493,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </div>
                       </div>
                     )}
+
+                    {/* Signup List (admin can cancel) */}
+                    <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                      <h3 className="text-xl font-extrabold text-gray-700 mb-4 flex items-center gap-3">
+                        <UserPlus size={24} className="text-mint-600" /> 報名名單 ({evtSignups.length})
+                      </h3>
+                      {evtSignups.length === 0 && <p className="text-gray-400 italic">尚無報名</p>}
+                      <div className="divide-y divide-gray-100">
+                        {evtSignups.map(su => {
+                          const name = volunteerMap[su.volunteerId]?.name || '未知義工';
+                          return (
+                            <div key={su.id} className="flex items-center justify-between gap-3 py-2">
+                              <div className="min-w-0">
+                                <div className="font-bold text-gray-800 truncate">{name}</div>
+                                <div className="text-sm text-gray-500">
+                                  {su.attendingDays.length} 天・{su.meals.length} 餐・{su.transportMode === 'shuttle' ? '搭接駁' : '自行前往'}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  if (confirm(`確定要取消「${name}」在「${evt.title}」的報名嗎？\n此人本次的出席、餐食、接駁登記與統計將一併刪除，且無法復原。`)) {
+                                    onDeleteSignup?.(su.id);
+                                  }
+                                }}
+                                className="shrink-0 text-sm px-3 py-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 font-bold flex items-center gap-1 transition"
+                              >
+                                <Trash2 size={16} /> 取消報名
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                       {/* Left Col */}

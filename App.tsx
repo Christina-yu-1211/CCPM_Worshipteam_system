@@ -663,6 +663,7 @@ export default function App() {
           onDeleteTask={handleAdminActions.deleteTask}
           onManageUser={handleAdminActions.manageUser}
           onUpdateSignup={handleUpdateSignup}
+          onDeleteSignup={handleDeleteSignup}
           onSeriesAction={handleSeriesAction}
           onTriggerEmailCheck={handleTriggerEmailCheck}
         />

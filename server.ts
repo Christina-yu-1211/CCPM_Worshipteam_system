@@ -369,7 +369,10 @@ app.post('/api/signups', async (req, res) => {
 });
 app.delete('/api/signups/:id', async (req, res) => {
     try {
-        await prisma.signup.delete({ where: { id: req.params.id } });
+        const deleted = await prisma.signup.delete({ where: { id: req.params.id } });
+        // 重新計算該義工的總服事次數，讓統計與剩餘報名一致
+        const remaining = await prisma.signup.count({ where: { volunteerId: deleted.volunteerId } });
+        await prisma.user.update({ where: { id: deleted.volunteerId }, data: { totalServiceCount: remaining } });
         res.json({ success: true });
     } catch (e) {
         console.error(e);
