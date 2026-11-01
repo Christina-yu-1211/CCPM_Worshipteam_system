@@ -517,9 +517,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     onDeleteSignup?.(su.id);
                                   }
                                 }}
-                                className="shrink-0 text-sm px-3 py-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 font-bold flex items-center gap-1 transition"
+                                className="shrink-0 text-sm px-2 py-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 flex items-center gap-1 transition"
                               >
-                                <Trash2 size={16} /> 取消報名
+                                <X size={14} /> 取消報名
                               </button>
                             </div>
                           );
